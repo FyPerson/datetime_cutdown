@@ -229,16 +229,17 @@ function updateStats() {
     // 今日进度计算
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
-    const minutesToday = getElapsedMinutes(todayStart, now);
-    const [hoursToday, minutesTodayRemaining] = minutesToDHM(minutesToday);
-    const hoursPercent = calculateProgress(minutesToday, MINUTES_PER_DAY);
+    const secondsToday = Math.floor((now - todayStart) / 1000);
+    const [, hoursToday, minutesToday, secondsToday2] = secondsToDHMS(secondsToday);
+    const todayPercent = calculateProgress(secondsToday, 24 * 3600);
 
     // 本周进度计算
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - now.getDay());
     weekStart.setHours(0, 0, 0, 0);
-    const minutesThisWeek = getElapsedMinutes(weekStart, now);
-    const weekPercent = calculateProgress(minutesThisWeek, 7 * MINUTES_PER_DAY);
+    const secondsThisWeek = Math.floor((now - weekStart) / 1000);
+    const [weekDays, weekHours, weekMinutes, weekSeconds] = secondsToDHMS(secondsThisWeek);
+    const weekPercent = calculateProgress(secondsThisWeek, 7 * 24 * 3600);
 
     // 本月进度计算
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -341,13 +342,13 @@ function updateStats() {
     const stats = [
         {
             title: "今日进度",
-            detail: `已过 ${hoursToday} 小时 ${minutesTodayRemaining} 分钟`,
-            percent: hoursPercent,
+            detail: `已过 ${hoursToday} 小时 ${minutesToday} 分钟 ${secondsToday2} 秒`,
+            percent: todayPercent,
             className: "today"
         },
         {
             title: "本周进度",
-            detail: `已过 ${Math.floor(minutesThisWeek / 60)} 小时 ${Math.floor(minutesThisWeek % 60)} 分钟`,
+            detail: `已过 ${weekDays} 天 ${weekHours} 小时 ${weekMinutes} 分钟 ${weekSeconds} 秒`,
             percent: weekPercent,
             className: "week"
         },
