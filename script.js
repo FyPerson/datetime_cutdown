@@ -197,13 +197,20 @@ function updateDateTime() {
     const solarDate = document.getElementById('solar-date');
     const lunarDate = document.getElementById('lunar-date');
     
-    // 公历日期显示保持不变
-    solarDate.textContent = now.toLocaleDateString('zh-CN', {
+    // 格式化时分秒
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}:${seconds}`;
+    
+    // 公历日期显示
+    const dateStr = now.toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         weekday: 'long'
     });
+    solarDate.textContent = `${dateStr} ${timeStr}`;
 
     // 获取农历信息
     const lunar = Lunar.fromDate(now);
@@ -353,7 +360,7 @@ function updateStats() {
     }
 
     // 计算儿童节倒计时
-    const childrenDay = new Date(2025, 5, 1); // 注意月份是从0开始的，所以6月是5
+    const childrenDay = new Date(2025, 5, 1); // 6月1日，月份从0开始，所以6月是5
     const secondsToChildrenDay = getSecondsTo(childrenDay);
     const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
     const childrenProgress = calculateFestivalProgress(childrenDay);
@@ -394,25 +401,25 @@ function updateStats() {
             title: "距离25年1月24日放假倒计时",
             detail: `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`,
             percent: companyProgress,
-            className: "company-holiday"
+            className: "winter-holiday"
         },
         {
             title: `${nextValentine.getFullYear()}年情人节倒计时`,
             detail: `还剩 ${valentineDays} 天 ${valentineHours} 小时 ${valentineMinutes} 分钟 ${valentineSeconds} 秒`,
             percent: valentineProgress,
-            className: "valentine"
+            className: "valentines-day"
         },
         {
             title: `${nextQingming.getFullYear()}年清明节倒计时`,
             detail: `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`,
             percent: qingmingProgress,
-            className: "qingming"
+            className: "qingming-festival"
         },
         {
             title: `${nextLabor.getFullYear()}年劳动节倒计时`,
             detail: `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`,
             percent: laborProgress,
-            className: "labor"
+            className: "labor-day"
         },
         {
             title: "2025年儿童节倒计时",
@@ -448,7 +455,7 @@ function updateStats() {
 }
 
 function updatePreciseCountdown() {
-    const targetDate = new Date(2025, 0, 24); // 2025年1月25日
+    const targetDate = new Date(2025, 0, 24); // 2025年1月24日
     const now = new Date();
     const timeDiff = targetDate - now;
     
