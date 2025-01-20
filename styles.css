@@ -83,6 +83,18 @@ h1 {
     height: 100%;
     border-radius: 3px;
     transition: width 0.3s ease;
+    background: linear-gradient(90deg, 
+        color-mix(in srgb, var(--stat-color) 40%, white) 0%,
+        var(--stat-color) 100%
+    );
+}
+
+/* 深色主题下的渐变调整 */
+:root[data-theme="dark"] .progress-bar {
+    background: linear-gradient(90deg, 
+        color-mix(in srgb, var(--stat-color) 40%, transparent) 0%,
+        var(--stat-color) 100%
+    );
 }
 
 .progress-text {
