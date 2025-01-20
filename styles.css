@@ -1,0 +1,212 @@
+/* 定义主题颜色变量 */
+:root[data-theme="light"] {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --card-bg: #f0f0f0;
+}
+
+:root[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --card-bg: #2d2d2d;
+}
+
+/* 使用变量的样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 15px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.theme-switch {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+#theme-toggle {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+h1 {
+    text-align: center;
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+}
+
+#stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stat-item {
+    background-color: var(--card-bg);
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-header {
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 2px;
+}
+
+.stat-detail {
+    font-size: 0.8em;
+    margin-bottom: 2px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.8em;
+    text-align: right;
+}
+
+/* 为每个统计项添加特定的类名和颜色 */
+.stat-item.today {
+    --stat-color: #2c9678;
+}
+
+.stat-item.week {
+    --stat-color: rgb(0,128,255);
+}
+
+.stat-item.month {
+    --stat-color: #f1ca17;
+}
+
+.stat-item.year {
+    --stat-color: rgb(255,69,0);
+}
+
+.stat-item.spring-festival {
+    --stat-color: #FF1493;
+}
+
+.stat-item.company-holiday {
+    --stat-color: #1a94bc;
+}
+
+.stat-item.valentine {
+    --stat-color: #FF69B4;
+}
+
+.stat-item.qingming {
+    --stat-color: #98FB98;
+}
+
+.stat-item.labor {
+    --stat-color: #a7a8bd;
+}
+
+.stat-item.off-work {
+    --stat-color: #c04851; 
+}
+
+.stat-item.salary {
+    --stat-color: #FFD700;  /* 金色 */
+}
+
+.stat-item.children-day {
+    --stat-color: #e9ccd3;  /* 粉色 */
+}
+
+/* 使用CSS变量设置颜色 */
+.stat-item .stat-header {
+    color: var(--stat-color);
+}
+
+.stat-item .stat-detail {
+    color: var(--stat-color);
+}
+
+.stat-item .progress-bar {
+    background-color: var(--stat-color);
+}
+
+.stat-item .progress-text {
+    color: var(--stat-color);
+}
+
+.current-time {
+    text-align: center;
+    padding: 15px;
+    margin-top: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.solar-date {
+    font-size: 3em;
+    color: var(--text-color);
+}
+
+.lunar-date {
+    font-size: 1.2em;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+.precise-countdown-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.countdown-label {
+    color: var(--text-color);
+    font-size: 1.2em;
+}
+
+.precise-countdown {
+    font-size: 1.5em;
+    color: var(--text-color);
+    letter-spacing: 2px;
+}
+
+.salary-countdown-container {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.salary-countdown {
+    color: var(--text-color);
+    font-size: 1.2em;
+}
+
+.salary-highlight {
+    color: #00ff00;  /* 发薪日特殊颜色 */
+}
+
+/* 移除所有 .salary-settings 相关样式 */ 

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>倒计时清单</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./node_modules/lunar-javascript/lunar.js"></script>
+    <script defer src="./script.js"></script>
+</head>
+<body>
+    <div class="theme-switch">
+        <button id="theme-toggle">
+            🌞 切换主题
+        </button>
+    </div>
+    <h1>倒计时清单</h1>
+    <div id="current-time" class="current-time">
+        <div id="solar-date" class="solar-date"></div>
+        <div id="lunar-date" class="lunar-date"></div>
+    </div>
+    <div class="precise-countdown-container">
+        <span class="countdown-label">距离1月24日放假还有:</span>
+        <div id="precise-countdown" class="precise-countdown"></div>
+    </div>
+    <div id="stats-container"></div>
+</body>
+</html> 
