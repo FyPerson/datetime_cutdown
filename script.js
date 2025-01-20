@@ -235,7 +235,11 @@ function updateStats() {
 
     // 本周进度计算
     const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay());
+    // 调整为以周一为起点
+    // getDay() 返回 0-6 (周日-周六)，我们需要转换为 1-7 (周一-周日)
+    const currentDay = now.getDay();
+    const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;  // 如果是周日(0)，应该算作6天，否则减1
+    weekStart.setDate(now.getDate() - daysFromMonday);
     weekStart.setHours(0, 0, 0, 0);
     const secondsThisWeek = Math.floor((now - weekStart) / 1000);
     const [weekDays, weekHours, weekMinutes, weekSeconds] = secondsToDHMS(secondsThisWeek);
