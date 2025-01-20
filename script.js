@@ -193,16 +193,32 @@ function formatDateTime(date) {
 }
 
 function updateDateTime() {
-    const solarDateDiv = document.getElementById('solar-date');
-    const lunarDateDiv = document.getElementById('lunar-date');
-    const dateTime = formatDateTime(new Date());
+    const now = new Date();
+    const solarDate = document.getElementById('solar-date');
+    const lunarDate = document.getElementById('lunar-date');
     
-    if (solarDateDiv) {
-        solarDateDiv.textContent = dateTime.solar;
-    }
-    if (lunarDateDiv) {
-        lunarDateDiv.textContent = dateTime.lunar;
-    }
+    // 公历日期显示保持不变
+    solarDate.textContent = now.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+    });
+
+    // 获取农历信息
+    const lunar = Lunar.fromDate(now);
+    const lunarYear = lunar.getYearInChinese();
+    const monthName = lunar.getMonthInChinese() + '月';
+    const dayName = lunar.getDayInChinese();
+    const term = lunar.getJieQi(); // 获取节气
+    const animal = lunar.getYearShengXiao(); // 获取生肖
+    const ganZhiYear = lunar.getYearInGanZhi(); // 获取年份天干地支
+    const ganZhiMonth = lunar.getMonthInGanZhi(); // 获取月份天干地支
+    const ganZhiDay = lunar.getDayInGanZhi(); // 获取日期天干地支
+    
+    // 组合农历日期字符串
+    const lunarText = `农历${lunarYear}年 ${monthName}${dayName} [${term}] ${ganZhiYear}年 ${ganZhiMonth}月 ${ganZhiDay}日 [属${animal}]`;
+    lunarDate.textContent = lunarText;
 }
 
 function createStatElement(title, detail, percent, className) {
@@ -413,7 +429,7 @@ function updateStats() {
             className: "off-work"
         },
         {
-            title: "距离发薪日",
+            title: "距离下一个发薪日",
             detail: salaryDetail,
             percent: salaryProgress,
             className: "salary"
