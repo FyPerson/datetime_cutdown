@@ -92,7 +92,7 @@ h1 {
 
 /* 为每个统计项添加特定的类名和颜色 */
 .stat-item.today {
-    --stat-color: #2c9678;
+    --stat-color: #c6dfc8;
 }
 
 .stat-item.week {
@@ -132,7 +132,7 @@ h1 {
 }
 
 .stat-item.salary {
-    --stat-color: #FFD700;  /* 金色 */
+    --stat-color: #55bb8a;  /* 金色 */
 }
 
 .stat-item.children-day {
