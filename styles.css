@@ -279,6 +279,11 @@ h1 {
     background-color: rgba(74, 144, 226, 0.1);
 }
 
+.stat-item.lunar-february-last-day {
+    --stat-color: #9b4dca;
+    background-color: rgba(155, 77, 202, 0.1);
+}
+
 /* 公历和农历日期显示的样式 */
 #solar-date {
     font-size: 2.0rem;  /* 较大字体 */

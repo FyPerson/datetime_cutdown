@@ -392,6 +392,102 @@ function updateStats() {
     const [febDays, febHours, febMinutes, febSeconds] = secondsToDHMS(secondsToFebruaryLastDay);
     const februaryLastDayProgress = calculateFestivalProgress(februaryLastDayInfo.date);
 
+    // 获取下一个农历二月最后一天
+    function getNextLunarFebruaryLastDay() {
+        const now = new Date();
+        const lunar = Lunar.fromDate(now);
+        const currentYear = lunar.getYear();
+        const currentMonth = lunar.getMonth();
+        const currentDay = lunar.getDay();
+        
+        let targetYear = currentYear;
+        // 如果当前已经过了农历二月，需要取下一年
+        if (currentMonth > 2) {
+            targetYear++;
+        }
+        // 如果当前是农历二月，但已经是二月最后一天或之后，也需要取下一年
+        else if (currentMonth === 2 && currentDay >= 29) {
+            targetYear++;
+        }
+        // 如果当前是农历一月，但已经接近月底，需要检查下一个月的日期
+        else if (currentMonth === 1 && currentDay >= 25) {
+            // 获取当前日期后5天的农历信息，检查是否已过农历二月
+            const futureDate = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+            const futureLunar = Lunar.fromDate(futureDate);
+            if (futureLunar.getMonth() > 2 || (futureLunar.getMonth() === 2 && futureLunar.getDay() >= 29)) {
+                targetYear++;
+            }
+        }
+        
+        try {
+            // 尝试直接获取农历二月最后一天
+            let lastDayLunar;
+            try {
+                lastDayLunar = Lunar.fromYmd(targetYear, 2, 29);
+                // 验证是否是有效的农历日期
+                const solarDate = lastDayLunar.getSolar();
+                const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+                
+                // 如果转换回农历后月份不是2，说明这个日期无效
+                const checkLunar = Lunar.fromDate(solarDateTime);
+                if (checkLunar.getMonth() !== 2) {
+                    lastDayLunar = Lunar.fromYmd(targetYear, 2, 28);
+                }
+            } catch {
+                lastDayLunar = Lunar.fromYmd(targetYear, 2, 28);
+            }
+            
+            // 获取对应的公历日期
+            const solarDate = lastDayLunar.getSolar();
+            const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+            
+            // 如果计算出的日期在当前日期之前，取下一年
+            if (solarDateTime < now) {
+                const nextYearLunar = Lunar.fromYmd(targetYear + 1, 2, 29);
+                const nextYearSolar = nextYearLunar.getSolar();
+                const nextYearDateTime = new Date(nextYearSolar.getYear(), nextYearSolar.getMonth() - 1, nextYearSolar.getDay());
+                
+                // 检查是否是有效的农历日期
+                const checkNextLunar = Lunar.fromDate(nextYearDateTime);
+                if (checkNextLunar.getMonth() === 2) {
+                    lastDayLunar = nextYearLunar;
+                    solarDateTime.setTime(nextYearDateTime.getTime());
+                } else {
+                    lastDayLunar = Lunar.fromYmd(targetYear + 1, 2, 28);
+                    const finalSolar = lastDayLunar.getSolar();
+                    solarDateTime.setFullYear(finalSolar.getYear());
+                    solarDateTime.setMonth(finalSolar.getMonth() - 1);
+                    solarDateTime.setDate(finalSolar.getDay());
+                }
+            }
+            
+            return {
+                date: solarDateTime,
+                year: lastDayLunar.getYearInChinese(),
+                month: lastDayLunar.getMonthInChinese(),
+                day: lastDayLunar.getDayInChinese(),
+                solarYear: solarDateTime.getFullYear()
+            };
+        } catch (error) {
+            console.error('Error calculating lunar February last day:', error);
+            // 返回一个默认值，使用公历2月最后一天作为后备
+            const fallbackDate = new Date(targetYear, 1, 28);
+            return {
+                date: fallbackDate,
+                year: targetYear.toString(),
+                month: '二',
+                day: '二十八',
+                solarYear: targetYear
+            };
+        }
+    }
+
+    // 获取农历二月最后一天信息
+    const lunarFebruaryLastDayInfo = getNextLunarFebruaryLastDay();
+    const secondsToLunarFebruaryLastDay = getSecondsTo(lunarFebruaryLastDayInfo.date);
+    const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = secondsToDHMS(secondsToLunarFebruaryLastDay);
+    const lunarFebruaryLastDayProgress = calculateFestivalProgress(lunarFebruaryLastDayInfo.date);
+
     // 创建统计项
     const stats = [
         {
@@ -473,6 +569,12 @@ function updateStats() {
             detail: `还剩 ${febDays}天${febHours}时${febMinutes}分${febSeconds}秒`,
             percent: februaryLastDayProgress,
             className: "february-last-day"
+        },
+        {
+            title: `${lunarFebruaryLastDayInfo.solarYear}年农历${lunarFebruaryLastDayInfo.month}月最后一天`,
+            detail: `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`,
+            percent: lunarFebruaryLastDayProgress,
+            className: "lunar-february-last-day"
         }
     ];
 
