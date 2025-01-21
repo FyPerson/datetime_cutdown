@@ -361,7 +361,7 @@ function updateStats() {
         }
 
         // 计算儿童节倒计时
-        const childrenDay = new Date(2025, 6, 1); // 6月1日，月份从0开始，所以6月是5
+        const childrenDay = new Date(2025, 5, 1); // 6月1日，月份从0开始，所以6月是5
         const secondsToChildrenDay = getSecondsTo(childrenDay);
         const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
         const childrenProgress = calculateFestivalProgress(childrenDay);
@@ -626,9 +626,257 @@ function updateStats() {
                 detail.textContent = `已过 ${hoursToday} 小时 ${minutesToday} 分钟 ${secondsToday2} 秒`;
                 progressBar.style.width = `${todayPercent}%`;
                 progressText.textContent = `(${todayPercent.toFixed(1)}%)`;
+            } else if (card.classList.contains('week')) {
+                const weekStart = new Date(now);
+                const currentDay = now.getDay();
+                const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
+                weekStart.setDate(now.getDate() - daysFromMonday);
+                weekStart.setHours(0, 0, 0, 0);
+                const secondsThisWeek = Math.floor((now - weekStart) / 1000);
+                const [weekDays, weekHours, weekMinutes, weekSeconds] = secondsToDHMS(secondsThisWeek);
+                const weekPercent = calculateProgress(secondsThisWeek, 7 * 24 * 3600);
+
+                detail.textContent = `已过 ${weekDays} 天 ${weekHours} 小时 ${weekMinutes} 分钟 ${weekSeconds} 秒`;
+                progressBar.style.width = `${weekPercent}%`;
+                progressText.textContent = `(${weekPercent.toFixed(1)}%)`;
+            } else if (card.classList.contains('spring-festival')) {
+                const { currentSpring, nextSpring } = getSpringFestivalDates();
+                const secondsToSpring = getSecondsTo(nextSpring.date);
+                const [springDays, springHours, springMinutes, springSeconds] = secondsToDHMS(secondsToSpring);
+                const springProgress = calculateFestivalProgress(nextSpring.date);
+
+                detail.textContent = `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟 ${springSeconds} 秒`;
+                progressBar.style.width = `${springProgress}%`;
+                progressText.textContent = `(${springProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('winter-holiday')) {
+                const companyHoliday = new Date(2025, 0, 24);
+                const secondsToCompanyHoliday = getSecondsTo(companyHoliday);
+                const [companyDays, companyHours, companyMinutes, companySeconds] = secondsToDHMS(secondsToCompanyHoliday);
+                const companyProgress = calculateFestivalProgress(companyHoliday);
+
+                detail.textContent = `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`;
+                progressBar.style.width = `${companyProgress}%`;
+                progressText.textContent = `(${companyProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('valentines-day')) {
+                const nextValentine = getNextFestival(2, 14);
+                const secondsToValentine = getSecondsTo(nextValentine);
+                const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = secondsToDHMS(secondsToValentine);
+                const valentineProgress = calculateFestivalProgress(nextValentine);
+
+                detail.textContent = `还剩 ${valentineDays} 天 ${valentineHours} 小时 ${valentineMinutes} 分钟 ${valentineSeconds} 秒`;
+                progressBar.style.width = `${valentineProgress}%`;
+                progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('qingming-festival')) {
+                const nextQingming = getNextFestival(4, 4);
+                const secondsToQingming = getSecondsTo(nextQingming);
+                const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = secondsToDHMS(secondsToQingming);
+                const qingmingProgress = calculateFestivalProgress(nextQingming);
+
+                detail.textContent = `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`;
+                progressBar.style.width = `${qingmingProgress}%`;
+                progressText.textContent = `(${qingmingProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('labor-day')) {
+                const nextLabor = getNextFestival(5, 1);
+                const secondsToLabor = getSecondsTo(nextLabor);
+                const [laborDays, laborHours, laborMinutes, laborSeconds] = secondsToDHMS(secondsToLabor);
+                const laborProgress = calculateFestivalProgress(nextLabor);
+
+                detail.textContent = `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`;
+                progressBar.style.width = `${laborProgress}%`;
+                progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('children-day')) {
+                const childrenDay = new Date(2025, 5, 1);
+                const secondsToChildrenDay = getSecondsTo(childrenDay);
+                const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
+                const childrenProgress = calculateFestivalProgress(childrenDay);
+
+                detail.textContent = `还剩 ${childrenDays}天 ${childrenHours}小时 ${childrenMinutes}分钟 ${childrenSeconds}秒`;
+                progressBar.style.width = `${childrenProgress}%`;
+                progressText.textContent = `(${childrenProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('off-work')) {
+                const secondsToOffWork = calculateTimeToOffWork();
+                const [offWorkHours, offWorkMinutes, offWorkSeconds] = minutesToDHMS(secondsToOffWork);
+                const offWorkProgress = calculateOffWorkProgress();
+
+                detail.textContent = secondsToOffWork === 0 
+                    ? "已下班" 
+                    : `还剩 ${offWorkHours} 小时 ${offWorkMinutes} 分钟 ${offWorkSeconds} 秒`;
+                progressBar.style.width = `${offWorkProgress}%`;
+                progressText.textContent = `(${offWorkProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('salary')) {
+                const today = now.getDate();
+                const salaryDay = 15;
+                let salaryDetail, salaryProgress;
+                
+                const nextSalaryDate = new Date(now);
+                if (today < salaryDay) {
+                    nextSalaryDate.setDate(salaryDay);
+                    nextSalaryDate.setHours(0, 0, 0, 0);
+                } else {
+                    nextSalaryDate.setMonth(nextSalaryDate.getMonth() + 1);
+                    nextSalaryDate.setDate(salaryDay);
+                    nextSalaryDate.setHours(0, 0, 0, 0);
+                }
+                
+                if (today === salaryDay) {
+                    salaryDetail = "今日为发薪日";
+                    salaryProgress = 100;
+                } else {
+                    const timeDiff = nextSalaryDate - now;
+                    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    const hours = String(Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+                    const minutes = String(Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                    const seconds = String(Math.floor((timeDiff % (1000 * 60)) / 1000)).padStart(2, '0');
+                    
+                    salaryDetail = `还剩 ${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
+                    
+                    const monthStart = new Date(nextSalaryDate);
+                    monthStart.setDate(salaryDay);
+                    monthStart.setMonth(monthStart.getMonth() - 1);
+                    const totalDays = (nextSalaryDate - monthStart) / (1000 * 60 * 60 * 24);
+                    const passedDays = totalDays - days - (Number(hours) + Number(minutes)/60 + Number(seconds)/3600)/24;
+                    salaryProgress = (passedDays / totalDays) * 100;
+                }
+
+                detail.textContent = salaryDetail;
+                progressBar.style.width = `${salaryProgress}%`;
+                progressText.textContent = `(${salaryProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('february-last-day')) {
+                function getNextFebruaryLastDay() {
+                    let year = now.getFullYear();
+                    let month = now.getMonth();
+                    
+                    if (month >= 1) {
+                        year += 1;
+                    }
+                    
+                    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+                    const lastDay = isLeapYear ? 29 : 28;
+                    
+                    return {
+                        date: new Date(year, 1, lastDay),
+                        isLeapYear,
+                        year
+                    };
+                }
+
+                const februaryLastDayInfo = getNextFebruaryLastDay();
+                const secondsToFebruaryLastDay = getSecondsTo(februaryLastDayInfo.date);
+                const [febDays, febHours, febMinutes, febSeconds] = secondsToDHMS(secondsToFebruaryLastDay);
+                const februaryLastDayProgress = calculateFestivalProgress(februaryLastDayInfo.date);
+
+                detail.textContent = `还剩 ${febDays}天${febHours}时${febMinutes}分${febSeconds}秒`;
+                progressBar.style.width = `${februaryLastDayProgress}%`;
+                progressText.textContent = `(${februaryLastDayProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('lunar-february-last-day')) {
+                function getNextLunarFebruarySpecialDay() {
+                    const lunar = Lunar.fromDate(now);
+                    const currentYear = lunar.getYear();
+                    const currentMonth = lunar.getMonth();
+                    const currentDay = lunar.getDay();
+                    
+                    let targetYear = currentYear;
+                    if (currentMonth > 2) {
+                        targetYear++;
+                    }
+                    else if (currentMonth === 2 && currentDay >= 29) {
+                        targetYear++;
+                    }
+                    else if (currentMonth === 2 && currentDay >= 28) {
+                        try {
+                            const testDate = Lunar.fromYmd(currentYear, 2, 29);
+                            const solarDate = testDate.getSolar();
+                            const testSolarDate = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+                            
+                            if (Lunar.fromDate(testSolarDate).getMonth() !== 2) {
+                                targetYear++;
+                            }
+                        } catch {
+                            targetYear++;
+                        }
+                    }
+                    
+                    try {
+                        let targetLunar;
+                        let targetDay = 29;
+                        try {
+                            targetLunar = Lunar.fromYmd(targetYear, 2, 29);
+                            const solarDate = targetLunar.getSolar();
+                            const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+                            
+                            const checkLunar = Lunar.fromDate(solarDateTime);
+                            if (checkLunar.getMonth() !== 2) {
+                                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                                targetDay = 28;
+                            }
+                        } catch {
+                            targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                            targetDay = 28;
+                        }
+                        
+                        const solarDate = targetLunar.getSolar();
+                        const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+                        
+                        if (solarDateTime < now) {
+                            targetYear++;
+                            try {
+                                targetLunar = Lunar.fromYmd(targetYear, 2, 29);
+                                const nextSolar = targetLunar.getSolar();
+                                const nextDateTime = new Date(nextSolar.getYear(), nextSolar.getMonth() - 1, nextSolar.getDay());
+                                const checkNextLunar = Lunar.fromDate(nextDateTime);
+                                
+                                if (checkNextLunar.getMonth() === 2) {
+                                    solarDateTime.setTime(nextDateTime.getTime());
+                                    targetDay = 29;
+                                } else {
+                                    targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                                    const finalSolar = targetLunar.getSolar();
+                                    solarDateTime.setFullYear(finalSolar.getYear());
+                                    solarDateTime.setMonth(finalSolar.getMonth() - 1);
+                                    solarDateTime.setDate(finalSolar.getDay());
+                                    targetDay = 28;
+                                }
+                            } catch {
+                                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                                const finalSolar = targetLunar.getSolar();
+                                solarDateTime.setFullYear(finalSolar.getYear());
+                                solarDateTime.setMonth(finalSolar.getMonth() - 1);
+                                solarDateTime.setDate(finalSolar.getDay());
+                                targetDay = 28;
+                            }
+                        }
+                        
+                        return {
+                            date: solarDateTime,
+                            year: targetLunar.getYearInChinese(),
+                            month: targetLunar.getMonthInChinese(),
+                            day: targetLunar.getDayInChinese(),
+                            solarYear: solarDateTime.getFullYear(),
+                            targetDay: targetDay
+                        };
+                    } catch (error) {
+                        console.error('Error calculating lunar February special day:', error);
+                        const fallbackDate = new Date(targetYear, 1, 28);
+                        return {
+                            date: fallbackDate,
+                            year: targetYear.toString(),
+                            month: '二',
+                            day: '二十八',
+                            solarYear: targetYear,
+                            targetDay: 28
+                        };
+                    }
+                }
+
+                const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
+                const secondsToLunarFebruary = getSecondsTo(lunarFebruaryInfo.date);
+                const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = secondsToDHMS(secondsToLunarFebruary);
+                const lunarFebruaryProgress = calculateFestivalProgress(lunarFebruaryInfo.date);
+
+                detail.textContent = `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`;
+                progressBar.style.width = `${lunarFebruaryProgress}%`;
+                progressText.textContent = `(${lunarFebruaryProgress.toFixed(1)}%)`;
             }
-            // 其他卡片的更新逻辑...
-            // ...
         });
     }
 
