@@ -339,7 +339,7 @@ function updateStats() {
     }
     
     if (today === salaryDay) {
-        salaryDetail = "🎉 今日为发薪日 🎉";
+        salaryDetail = "今日为发薪日";
         salaryProgress = 100;
     } else {
         const timeDiff = nextSalaryDate - now;
@@ -360,10 +360,37 @@ function updateStats() {
     }
 
     // 计算儿童节倒计时
-    const childrenDay = new Date(2025, 5, 1); // 6月1日，月份从0开始，所以6月是5
+    const childrenDay = new Date(2025, 6, 1); // 6月1日，月份从0开始，所以6月是5
     const secondsToChildrenDay = getSecondsTo(childrenDay);
     const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
     const childrenProgress = calculateFestivalProgress(childrenDay);
+
+    // 获取下一个二月最后一天
+    function getNextFebruaryLastDay() {
+        const now = new Date();
+        let year = now.getFullYear();
+        let month = now.getMonth();
+        
+        // 如果当前月份已经过了2月，那么取下一年的2月
+        if (month >= 1) { // 0是一月，1是二月
+            year += 1;
+        }
+        
+        // 判断是否为闰年
+        const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        const lastDay = isLeapYear ? 29 : 28;
+        
+        return {
+            date: new Date(year, 1, lastDay),
+            isLeapYear,
+            year
+        };
+    }
+
+    const februaryLastDayInfo = getNextFebruaryLastDay();
+    const secondsToFebruaryLastDay = getSecondsTo(februaryLastDayInfo.date);
+    const [febDays, febHours, febMinutes, febSeconds] = secondsToDHMS(secondsToFebruaryLastDay);
+    const februaryLastDayProgress = calculateFestivalProgress(februaryLastDayInfo.date);
 
     // 创建统计项
     const stats = [
@@ -440,14 +467,22 @@ function updateStats() {
             detail: salaryDetail,
             percent: salaryProgress,
             className: "salary"
+        },
+        {
+            title: `${februaryLastDayInfo.year}年2月${februaryLastDayInfo.isLeapYear ? '29' : '28'}日倒计时`,
+            detail: `还剩 ${febDays}天${febHours}时${febMinutes}分${febSeconds}秒`,
+            percent: februaryLastDayProgress,
+            className: "february-last-day"
         }
     ];
 
-    // 添加所有统计项到容器
+    // 清空容器
+    statsContainer.innerHTML = '';
+
+    // 创建并添加所有统计项
     stats.forEach(stat => {
-        statsContainer.appendChild(
-            createStatElement(stat.title, stat.detail, stat.percent, stat.className)
-        );
+        const element = createStatElement(stat.title, stat.detail, stat.percent, stat.className);
+        statsContainer.appendChild(element);
     });
 
     // 更新时间显示
