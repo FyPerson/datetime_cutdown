@@ -274,6 +274,17 @@ h1 {
     background-color: rgba(192, 72, 81, 0.1);
 }
 
+/* 公历和农历日期显示的样式 */
+#solar-date {
+    font-size: 2.0rem;  /* 较大字体 */
+    margin-bottom: 0.5rem;  /* 添加一些底部间距 */
+}
+
+#lunar-date {
+    font-size: 1.0rem;  /* 稍小的字体 */
+    opacity: 0.9;  /* 略微降低不透明度，让它看起来次要一些 */
+}
+
 /* 添加动画关键帧 */
 @keyframes fadeIn {
     from {
@@ -295,5 +306,64 @@ h1 {
     }
     100% {
         transform: scale(1);
+    }
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 5px 10px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .current-time {
+        font-size: 1em;
+    }
+
+    .precise-countdown-container {
+        font-size: 1.5em;
+    }
+
+    .countdown-label {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    #stats-container {
+        grid-template-columns: 1fr;
+        padding: 5px;
+    }
+
+    .theme-text {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    h1 {
+        font-size: 1.3em;
+    }
+
+    .precise-countdown-container {
+        font-size: 1.2em;
+    }
+
+    .stat-header {
+        font-size: 0.9em;
+    }
+
+    .stat-detail {
+        font-size: 0.55em;
+    }
+}
+
+/* 确保在更大屏幕上内容不会过宽 */
+@media screen and (min-width: 1400px) {
+    #stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
     }
 }
