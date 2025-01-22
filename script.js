@@ -68,14 +68,26 @@ const ProgressUtil = {
     // 计算节日进度
     calculateFestival(festivalDate) {
         const now = new Date();
-        const yearStart = new Date(now.getFullYear(), 0, 1);
-        const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+        const timeDiff = festivalDate - now;
         
-        // 计算总分钟数和已过分钟数
-        const totalMinutes = TimeUtil.getElapsedMinutes(yearStart, yearEnd);
-        const elapsedMinutes = TimeUtil.getElapsedMinutes(yearStart, now);
+        // 如果节日已经过去，返回100%
+        if (timeDiff <= 0) {
+            return 100;
+        }
         
-        return this.calculate(elapsedMinutes, totalMinutes);
+        // 获取最近的上一个节日（默认为年初）
+        const prevFestival = new Date(now.getFullYear(), 0, 1);
+        
+        // 计算从上一个节日到目标节日的总时间
+        const totalDuration = festivalDate - prevFestival;
+        // 计算从现在到目标节日的剩余时间
+        const remainingDuration = festivalDate - now;
+        
+        // 计算已经过去的时间占比
+        const progress = ((totalDuration - remainingDuration) / totalDuration) * 100;
+        
+        // 确保进度在0-100之间
+        return Math.max(0, Math.min(100, progress));
     }
 };
 
@@ -213,27 +225,26 @@ function getNextFestival(month, day) {
 // 计算节日倒计时进度
 function calculateFestivalProgress(festivalDate) {
     const now = new Date();
-    const currentYear = festivalDate.getFullYear();
-    const yearStart = new Date(currentYear, 0, 1);
+    const timeDiff = festivalDate - now;
     
-    // 计算从年初到节日的总分钟数（分母）
-    const totalMinutes = getElapsedMinutes(yearStart, festivalDate);
-    
-    // 如果现在的年份小于节日的年份，进度为0
-    if (now.getFullYear() < currentYear) {
-        return 0;
-    }
-    
-    // 如果现在的年份大于节日的年份，进度为100
-    if (now.getFullYear() > currentYear) {
+    // 如果节日已经过去，返回100%
+    if (timeDiff <= 0) {
         return 100;
     }
     
-    // 计算从年初到现在的分钟数（分子）
-    const elapsedMinutes = getElapsedMinutes(yearStart, now);
+    // 获取最近的上一个节日（默认为年初）
+    const prevFestival = new Date(now.getFullYear(), 0, 1);
     
-    // 计算进度 (已过时间/总时间 * 100)
-    return (elapsedMinutes / totalMinutes) * 100;
+    // 计算从上一个节日到目标节日的总时间
+    const totalDuration = festivalDate - prevFestival;
+    // 计算从现在到目标节日的剩余时间
+    const remainingDuration = festivalDate - now;
+    
+    // 计算已经过去的时间占比
+    const progress = ((totalDuration - remainingDuration) / totalDuration) * 100;
+    
+    // 确保进度在0-100之间
+    return Math.max(0, Math.min(100, progress));
 }
 
 // 计算距离下班的时间（返回秒数）
