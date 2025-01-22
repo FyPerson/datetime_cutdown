@@ -333,6 +333,11 @@ h1 {
     background-color: rgba(222, 184, 135, 0.1);
 }
 
+.stat-item.national-day {
+    --stat-color: #f03752;  /* 金色 */
+    background-color: rgba(240, 55, 82, 0.1);
+}
+
 .stat-item.national {
     --stat-color: #DC143C;
     background-color: rgba(220, 20, 60, 0.1);

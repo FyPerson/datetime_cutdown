@@ -410,21 +410,25 @@ function updateStats() {
         const nextValentine = getNextFestival(2, 14);  // 情人节
         const nextQingming = getNextFestival(4, 4);    // 清明节
         const nextLabor = getNextFestival(5, 1);       // 劳动节
+        const nextNationalDay = getNextFestival(10, 1); // 国庆节
 
         // 计算各个节日的倒计时
         const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
         const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
         const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
+        const secondsToNationalDay = TimeUtil.getSecondsTo(nextNationalDay);
 
         // 转换为天时分秒
         const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
         const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
         const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
+        const [nationalDays, nationalHours, nationalMinutes, nationalSeconds] = TimeUtil.secondsToDHMS(secondsToNationalDay);
 
         // 计算进度
         const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
         const qingmingProgress = ProgressUtil.calculateFestival(nextQingming);
         const laborProgress = ProgressUtil.calculateFestival(nextLabor);
+        const nationalDayProgress = ProgressUtil.calculateFestival(nextNationalDay);
 
         // 计算下班倒计时
         const secondsToOffWork = calculateTimeToOffWork();
@@ -620,6 +624,12 @@ function updateStats() {
         const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
         const lunarFebruaryProgress = ProgressUtil.calculateFestival(lunarFebruaryInfo.date);
 
+        // 获取中秋节日期（农历八月十五）
+        const midAutumnDay = getNextLunarFestival(8, 15);
+        const secondsToMidAutumn = TimeUtil.getSecondsTo(midAutumnDay);
+        const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
+        const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
+
         // 创建统计项
         const stats = [
             {
@@ -653,7 +663,7 @@ function updateStats() {
                 className: "spring-festival"
             },
             {
-                title: "距离1月23日17:30放假倒计时",
+                title: "距离年前放假倒计时",
                 detail: `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`,
                 percent: companyProgress,
                 className: "winter-holiday"
@@ -675,6 +685,12 @@ function updateStats() {
                 detail: `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`,
                 percent: laborProgress,
                 className: "labor-day"
+            },
+            {
+                title: `${nextNationalDay.getFullYear()}年国庆节倒计时`,
+                detail: `还剩 ${nationalDays}天 ${nationalHours}时 ${nationalMinutes}分 ${nationalSeconds}秒`,
+                percent: nationalDayProgress,
+                className: "national-day"
             },
             {
                 title: "2025年儿童节倒计时",
@@ -709,6 +725,12 @@ function updateStats() {
                 detail: `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`,
                 percent: lunarFebruaryProgress,
                 className: "lunar-february-last-day"
+            },
+            {
+                title: `${midAutumnDay.getFullYear()}年中秋节倒计时`,
+                detail: `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`,
+                percent: midAutumnProgress,
+                className: "mid-autumn"
             }
         ];
 
@@ -792,6 +814,15 @@ function updateStats() {
                 detail.textContent = `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`;
                 progressBar.style.width = `${laborProgress}%`;
                 progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('national-day')) {
+                const nextNationalDay = getNextFestival(10, 1);
+                const secondsToNationalDay = TimeUtil.getSecondsTo(nextNationalDay);
+                const [nationalDays, nationalHours, nationalMinutes, nationalSeconds] = TimeUtil.secondsToDHMS(secondsToNationalDay);
+                const nationalDayProgress = ProgressUtil.calculateFestival(nextNationalDay);
+
+                detail.textContent = `还剩 ${nationalDays}天 ${nationalHours}时 ${nationalMinutes}分 ${nationalSeconds}秒`;
+                progressBar.style.width = `${nationalDayProgress}%`;
+                progressText.textContent = `(${nationalDayProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('children-day')) {
                 const childrenDay = new Date(2025, 5, 1);
                 const secondsToChildrenDay = TimeUtil.getSecondsTo(childrenDay);
@@ -987,6 +1018,15 @@ function updateStats() {
                 detail.textContent = `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`;
                 progressBar.style.width = `${lunarFebruaryProgress}%`;
                 progressText.textContent = `(${lunarFebruaryProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('mid-autumn')) {
+                const midAutumnDay = getNextLunarFestival(8, 15);
+                const secondsToMidAutumn = TimeUtil.getSecondsTo(midAutumnDay);
+                const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
+                const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
+
+                detail.textContent = `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`;
+                progressBar.style.width = `${midAutumnProgress}%`;
+                progressText.textContent = `(${midAutumnProgress.toFixed(1)}%)`;
             }
         });
     }
@@ -1130,6 +1170,20 @@ function updateStats() {
             detail.textContent = `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`;
             progressBar.style.width = `${laborProgress}%`;
             progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
+        } else if (card.classList.contains('national-day')) {
+            const nextNationalDay = getNextFestival(10, 1);
+            const secondsToNationalDay = TimeUtil.getSecondsTo(nextNationalDay);
+            const [nationalDays, nationalHours, nationalMinutes, nationalSeconds] = TimeUtil.secondsToDHMS(secondsToNationalDay);
+            const nationalDayProgress = ProgressUtil.calculateFestival(nextNationalDay);
+
+            // 更新里程碑和特效
+            ProgressEffects.updateMilestones(progressContainer, nationalDayProgress);
+            ProgressEffects.updateProgressText(progressText, nationalDayProgress);
+
+            const detail = card.querySelector('.stat-detail');
+            detail.textContent = `还剩 ${nationalDays}天 ${nationalHours}时 ${nationalMinutes}分 ${nationalSeconds}秒`;
+            progressBar.style.width = `${nationalDayProgress}%`;
+            progressText.textContent = `(${nationalDayProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('children-day')) {
             const childrenDay = new Date(2025, 5, 1);
             const secondsToChildrenDay = TimeUtil.getSecondsTo(childrenDay);
@@ -1350,6 +1404,20 @@ function updateStats() {
             detail.textContent = `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`;
             progressBar.style.width = `${lunarFebruaryProgress}%`;
             progressText.textContent = `(${lunarFebruaryProgress.toFixed(1)}%)`;
+        } else if (card.classList.contains('mid-autumn')) {
+            const midAutumnDay = getNextLunarFestival(8, 15);
+            const secondsToMidAutumn = TimeUtil.getSecondsTo(midAutumnDay);
+            const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
+            const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
+
+            // 更新里程碑和特效
+            ProgressEffects.updateMilestones(progressContainer, midAutumnProgress);
+            ProgressEffects.updateProgressText(progressText, midAutumnProgress);
+
+            const detail = card.querySelector('.stat-detail');
+            detail.textContent = `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`;
+            progressBar.style.width = `${midAutumnProgress}%`;
+            progressText.textContent = `(${midAutumnProgress.toFixed(1)}%)`;
         }
     });
 
@@ -1412,3 +1480,23 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     html.setAttribute('data-theme', newTheme);
 }); 
+
+function getNextLunarFestival(month, day) {
+    const now = new Date();
+    const lunar = Lunar.fromDate(now);
+    const currentYear = lunar.getYear();
+    
+    // 获取今年的节日日期
+    let festivalLunar = Lunar.fromYmd(currentYear, month, day);
+    let festivalSolar = festivalLunar.getSolar();
+    let festivalDate = new Date(festivalSolar.getYear(), festivalSolar.getMonth() - 1, festivalSolar.getDay());
+    
+    // 如果今年的节日已过，取明年的日期
+    if (now > festivalDate) {
+        festivalLunar = Lunar.fromYmd(currentYear + 1, month, day);
+        festivalSolar = festivalLunar.getSolar();
+        festivalDate = new Date(festivalSolar.getYear(), festivalSolar.getMonth() - 1, festivalSolar.getDay());
+    }
+    
+    return festivalDate;
+}
