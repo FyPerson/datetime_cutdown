@@ -3,37 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="倒计时清单 - 帮助您追踪重要日期和事件">
     <title>倒计时清单</title>
     <link rel="stylesheet" href="./styles.css">
-    <script src="./lunar.js"></script>
-    <script defer src="./script.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- 只加载需要的图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/solid.min.css">
+    <script src="./lunar.js" defer></script>
+    <script src="./script.js" defer></script>
 </head>
 <body>
-    <div class="theme-switch">
-        <button id="theme-toggle">
-            <i class="fas fa-sun light-icon"></i>
-            <i class="fas fa-moon dark-icon"></i>
-            <span class="theme-text">切换主题</span>
-        </button>
-    </div>
-    <h1><i class="fas fa-hourglass-half"></i> 倒计时清单</h1>
-    <div id="current-time" class="current-time">
-        <div id="solar-date" class="solar-date"><i class="fas fa-calendar-alt"></i> <span id="solar-date-text"></span></div>
-        <div id="lunar-date" class="lunar-date"><i class="fas fa-moon"></i> <span id="lunar-date-text"></span></div>
-    </div>
-    <div class="precise-countdown-container">
-        <span class="countdown-label"><i class="fas fa-plane-departure"></i> 距离1月24日放假还有:</span>
-        <div id="precise-countdown" class="precise-countdown"></div>
-    </div>
-    <div id="stats-container"></div>
-    <style>
-        .countdown-digits {
-            font-family: monospace;  /* 使用等宽字体 */
-            display: inline-block;
-            min-width: 1.2em;        /* 确保每个数字占据相同宽度 */
-            text-align: center;      /* 数字居中对齐 */
-        }
-    </style>
+    <header>
+        <nav class="theme-switch">
+            <button id="theme-toggle" aria-label="切换主题">
+                <i class="fas fa-sun light-icon" aria-hidden="true"></i>
+                <i class="fas fa-moon dark-icon" aria-hidden="true"></i>
+                <span class="theme-text">切换主题</span>
+            </button>
+        </nav>
+        <h1><i class="fas fa-hourglass-half" aria-hidden="true"></i> 倒计时清单</h1>
+    </header>
+
+    <main>
+        <section id="current-time" class="current-time">
+            <div id="solar-date" class="solar-date">
+                <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                <span id="solar-date-text"></span>
+            </div>
+            <div id="lunar-date" class="lunar-date">
+                <i class="fas fa-moon" aria-hidden="true"></i>
+                <span id="lunar-date-text"></span>
+            </div>
+        </section>
+
+        <section class="precise-countdown-container">
+            <span class="countdown-label">
+                <i class="fas fa-plane-departure" aria-hidden="true"></i>
+                距离1月24日放假还有:
+            </span>
+            <div id="precise-countdown" class="precise-countdown"></div>
+        </section>
+
+        <section id="stats-container"></section>
+    </main>
 </body>
 </html>

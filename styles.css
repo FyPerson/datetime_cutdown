@@ -1,4 +1,35 @@
-/* 定义主题颜色变量 */
+/* 全局 CSS 变量 */
+:root {
+    /* 基础变量 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --border-radius-sm: 3px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
+    
+    /* 动画变量 */
+    --transition-speed: 0.3s;
+    --transition-timing: ease;
+    --transition-default: all var(--transition-speed) var(--transition-timing);
+    
+    /* 阴影变量 */
+    --shadow-sm: 0 2px 4px;
+    --shadow-md: 0 4px 8px;
+    
+    /* 字体变量 */
+    --font-family-base: 'Segoe UI', Arial, sans-serif;
+    --font-family-mono: 'Roboto Mono', monospace;
+    --font-size-xs: 0.6em;
+    --font-size-sm: 0.85em;
+    --font-size-base: 1em;
+    --font-size-lg: 1.1em;
+    --font-size-xl: 1.8em;
+    --font-size-xxl: 2em;
+}
+
+/* 亮色主题 */
 :root[data-theme="light"] {
     --bg-color: #f5f5f5;
     --text-color: #2c3e50;
@@ -8,6 +39,7 @@
     --gradient-end: #f0f0f0;
 }
 
+/* 暗色主题 */
 :root[data-theme="dark"] {
     --bg-color: #1a1a1a;
     --text-color: #ecf0f1;
@@ -17,146 +49,152 @@
     --gradient-end: #2d2d2d;
 }
 
+/* 重置样式 */
 * {
-    transition: all 0.3s ease;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    transition: var(--transition-default);
 }
 
+/* 基础布局 */
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: var(--font-family-base);
     background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
     color: var(--text-color);
     min-height: 100vh;
-    padding: 10px 20px;
+    padding: var(--spacing-sm) var(--spacing-lg);
     display: flex;
     flex-direction: column;
 }
 
+/* 主题切换按钮 */
 .theme-switch {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
 }
 
 #theme-toggle {
-    padding: 8px 12px;
+    padding: var(--spacing-sm) var(--spacing-md);
     border: none;
-    border-radius: 20px;
+    border-radius: var(--border-radius-lg);
     cursor: pointer;
     background-color: var(--card-bg);
     color: var(--text-color);
     display: flex;
     align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 4px var(--shadow-color);
-    transition: all 0.3s ease;
+    gap: var(--spacing-sm);
+    box-shadow: var(--shadow-sm) var(--shadow-color);
 }
 
 #theme-toggle:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow-color);
+    box-shadow: var(--shadow-md) var(--shadow-color);
 }
 
-/* 亮色模式下显示月亮图标，隐藏太阳图标 */
-:root[data-theme="light"] .light-icon {
-    display: none;
-}
-
-:root[data-theme="light"] .dark-icon {
-    display: inline-block;
-}
-
-/* 暗色模式下显示太阳图标，隐藏月亮图标 */
-:root[data-theme="dark"] .light-icon {
-    display: inline-block;
-}
-
+/* 主题图标显示控制 */
+:root[data-theme="light"] .light-icon,
 :root[data-theme="dark"] .dark-icon {
     display: none;
 }
 
+:root[data-theme="light"] .dark-icon,
+:root[data-theme="dark"] .light-icon {
+    display: inline-block;
+}
+
 .theme-text {
-    font-size: 0.9em;
+    font-size: var(--font-size-sm);
 }
 
 /* 图标动画 */
 #theme-toggle i {
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-speed) var(--transition-timing);
 }
 
 #theme-toggle:hover i {
     transform: rotate(360deg);
 }
 
+/* 标题样式 */
 h1 {
     text-align: center;
-    margin: 10px 0;
-    font-size: 1.8em;
+    margin: var(--spacing-sm) 0;
+    font-size: var(--font-size-xl);
     text-shadow: 2px 2px 4px var(--shadow-color);
 }
 
+/* 当前时间样式 */
 .current-time {
     text-align: center;
-    margin: 10px 0;
-    font-size: 1.1em;
+    margin: var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
 }
 
+/* 精确倒计时样式 */
 .precise-countdown-container {
     text-align: center;
-    margin: 15px 0;
-    font-size: 2em;
+    margin: var(--spacing-md) 0;
+    font-size: var(--font-size-xxl);
     color: var(--text-color);
 }
 
 .countdown-label {
     display: inline;
-    margin-right: 15px;
+    margin-right: var(--spacing-sm);
 }
 
 .precise-countdown {
     display: inline;
-    font-family: 'Roboto Mono', monospace;
+    font-family: var(--font-family-mono);
     font-weight: bold;
 }
 
+.countdown-digits {
+    font-family: monospace;
+    display: inline-block;
+    min-width: 1.2em;
+    text-align: center;
+}
+
+/* 统计信息容器样式 */
 #stats-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
+    gap: var(--spacing-md);
     max-width: 1400px;
     margin: 0 auto;
-    padding: 10px;
+    padding: var(--spacing-sm);
 }
 
 .stat-item {
     background-color: var(--card-bg);
-    padding: 15px;
-    border-radius: 12px;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 2px 4px var(--shadow-color);
+    gap: var(--spacing-sm);
+    box-shadow: var(--shadow-sm) var(--shadow-color);
     position: relative;
     overflow: hidden;
 }
 
 .stat-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow-color);
+    box-shadow: var(--shadow-md) var(--shadow-color);
 }
 
 .stat-header {
     font-weight: bold;
-    font-size: 1em;
-    margin-bottom: 2px;
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-xs);
     color: var(--stat-color);
 }
 
 .stat-detail {
-    font-size: 0.6em;
-    margin-bottom: 5px;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-sm);
     color: var(--stat-color);
 }
 
@@ -164,7 +202,7 @@ h1 {
     width: 100%;
     height: 6px;
     background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
     margin-top: auto;
@@ -176,13 +214,13 @@ h1 {
         var(--stat-color) 0%,
         color-mix(in srgb, var(--stat-color) 70%, transparent) 100%
     );
-    border-radius: 3px;
-    transition: width 0.3s ease;
+    border-radius: var(--border-radius-sm);
+    transition: width var(--transition-speed) var(--transition-timing);
 }
 
 .progress-text {
-    font-size: 0.85em;
-    margin-top: 4px;
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
     text-align: right;
     opacity: 0.9;
     color: var(--stat-color);
@@ -320,31 +358,63 @@ h1 {
 }
 
 /* 响应式设计 */
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
+    :root {
+        --font-size-xxl: 1.5em;
+        --font-size-xl: 1.4em;
+        --font-size-lg: 1em;
+    }
+
     body {
-        padding: 5px 10px;
-    }
-
-    h1 {
-        font-size: 1.5em;
-    }
-
-    .current-time {
-        font-size: 1em;
-    }
-
-    .precise-countdown-container {
-        font-size: 1.5em;
-    }
-
-    .countdown-label {
-        display: block;
-        margin-bottom: 10px;
+        padding: var(--spacing-xs);
     }
 
     #stats-container {
         grid-template-columns: 1fr;
-        padding: 5px;
+        gap: var(--spacing-sm);
+    }
+
+    .countdown-label {
+        display: block;
+        margin-bottom: var(--spacing-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .theme-text {
+        display: none;
+    }
+
+    #theme-toggle {
+        padding: var(--spacing-xs);
+    }
+}
+
+@media screen and (max-width: 768px) {
+    body {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .current-time {
+        font-size: var(--font-size-base);
+    }
+
+    .precise-countdown-container {
+        font-size: var(--font-size-xl);
+    }
+
+    .countdown-label {
+        display: block;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    #stats-container {
+        grid-template-columns: 1fr;
+        padding: var(--spacing-xs);
     }
 
     .theme-text {
@@ -354,19 +424,19 @@ h1 {
 
 @media screen and (max-width: 480px) {
     h1 {
-        font-size: 1.3em;
+        font-size: var(--font-size-md);
     }
 
     .precise-countdown-container {
-        font-size: 1.2em;
+        font-size: var(--font-size-lg);
     }
 
     .stat-header {
-        font-size: 0.9em;
+        font-size: var(--font-size-base);
     }
 
     .stat-detail {
-        font-size: 0.55em;
+        font-size: var(--font-size-xs);
     }
 }
 
