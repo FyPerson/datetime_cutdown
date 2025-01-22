@@ -71,5 +71,5 @@ class SakuraManager {
 
 // 当页面加载完成后初始化樱花效果
 document.addEventListener('DOMContentLoaded', () => {
-    new SakuraManager(10); // 创建10朵樱花
+    new SakuraManager(100); // 创建10朵樱花
 });
