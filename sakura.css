@@ -1,0 +1,8 @@
+.sakura {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+    font-size: 14px;
+    line-height: 1;
+    user-select: none;
+}
