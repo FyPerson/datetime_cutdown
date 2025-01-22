@@ -135,47 +135,6 @@ const ProgressEffects = {
     }
 };
 
-// 工具函数
-function getElapsedMinutes(startTime, endTime) {
-    return Math.floor((endTime - startTime) / (1000 * 60));
-}
-
-// 工具函数：将分钟和秒转换为时分秒格式
-function minutesToDHMS(totalSeconds) {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return [hours, minutes, seconds];
-}
-
-// 工具函数
-function minutesToDHM(minutes) {
-    const days = Math.floor(minutes / (24 * 60));
-    const hours = Math.floor((minutes % (24 * 60)) / 60);
-    const mins = Math.floor(minutes % 60);
-    return [days, hours, mins];
-}
-
-// 工具函数：将总秒数转换为天时分秒格式
-function secondsToDHMS(totalSeconds) {
-    const days = Math.floor(totalSeconds / (24 * 3600));
-    const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return [days, hours, minutes, seconds];
-}
-
-// 计算到指定日期的剩余秒数
-function getSecondsTo(targetDate) {
-    const now = new Date();
-    return Math.floor((targetDate - now) / 1000);
-}
-
-// 计算进度
-function calculateProgress(elapsed, total) {
-    return (elapsed / total) * 100;
-}
-
 // 获取相邻的两个春节日期
 function getSpringFestivalDates() {
     const now = new Date();
@@ -305,8 +264,8 @@ function calculateOffWorkProgress() {
     }
     
     // 计算工作日进度
-    const totalMinutes = getElapsedMinutes(workStart, workEnd);
-    const elapsedMinutes = getElapsedMinutes(workStart, now);
+    const totalMinutes = TimeUtil.getElapsedMinutes(workStart, workEnd);
+    const elapsedMinutes = TimeUtil.getElapsedMinutes(workStart, now);
     return (elapsedMinutes / totalMinutes) * 100;
 }
 
@@ -405,29 +364,29 @@ function updateStats() {
 
         // 本月进度计算
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const minutesThisMonth = getElapsedMinutes(monthStart, now);
-        const [monthDays, monthHours, monthMinutes] = minutesToDHM(minutesThisMonth);
+        const minutesThisMonth = TimeUtil.getElapsedMinutes(monthStart, now);
+        const [monthDays, monthHours, monthMinutes] = TimeUtil.minutesToDHM(minutesThisMonth);
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         const monthPercent = ProgressUtil.calculate(minutesThisMonth, daysInMonth * TIME.MINUTES_PER_DAY);
 
         // 今年进度计算
         const yearStart = new Date(now.getFullYear(), 0, 1);
-        const minutesThisYear = getElapsedMinutes(yearStart, now);
-        const [yearDays, yearHours, yearMinutes] = minutesToDHM(minutesThisYear);
+        const minutesThisYear = TimeUtil.getElapsedMinutes(yearStart, now);
+        const [yearDays, yearHours, yearMinutes] = TimeUtil.minutesToDHM(minutesThisYear);
         const isLeapYear = new Date(now.getFullYear(), 1, 29).getMonth() === 1;
         const daysInYear = isLeapYear ? 366 : 365;
         const yearPercent = ProgressUtil.calculate(minutesThisYear, daysInYear * TIME.MINUTES_PER_DAY);
 
         // 春节倒计时计算
         const { currentSpring, nextSpring } = getSpringFestivalDates();
-        const secondsToSpring = getSecondsTo(nextSpring.date);
-        const [springDays, springHours, springMinutes, springSeconds] = secondsToDHMS(secondsToSpring);
+        const secondsToSpring = TimeUtil.getSecondsTo(nextSpring.date);
+        const [springDays, springHours, springMinutes, springSeconds] = TimeUtil.secondsToDHMS(secondsToSpring);
         const springProgress = ProgressUtil.calculateFestival(nextSpring.date);
 
         // 公司放假倒计时计算
         const companyHoliday = DATES.COMPANY_HOLIDAY;
-        const secondsToCompanyHoliday = getSecondsTo(companyHoliday);
-        const [companyDays, companyHours, companyMinutes, companySeconds] = secondsToDHMS(secondsToCompanyHoliday);
+        const secondsToCompanyHoliday = TimeUtil.getSecondsTo(companyHoliday);
+        const [companyDays, companyHours, companyMinutes, companySeconds] = TimeUtil.secondsToDHMS(secondsToCompanyHoliday);
         const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
 
         // 获取各个节日的下一个日期
@@ -436,14 +395,14 @@ function updateStats() {
         const nextLabor = getNextFestival(5, 1);       // 劳动节
 
         // 计算各个节日的倒计时
-        const secondsToValentine = getSecondsTo(nextValentine);
-        const secondsToQingming = getSecondsTo(nextQingming);
-        const secondsToLabor = getSecondsTo(nextLabor);
+        const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
+        const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
+        const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
 
         // 转换为天时分秒
-        const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = secondsToDHMS(secondsToValentine);
-        const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = secondsToDHMS(secondsToQingming);
-        const [laborDays, laborHours, laborMinutes, laborSeconds] = secondsToDHMS(secondsToLabor);
+        const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
+        const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
+        const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
 
         // 计算进度
         const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
@@ -452,7 +411,7 @@ function updateStats() {
 
         // 计算下班倒计时
         const secondsToOffWork = calculateTimeToOffWork();
-        const [days, hours, minutes, seconds] = secondsToDHMS(secondsToOffWork);
+        const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
         const totalHours = days * 24 + hours;  // 将天数转换为小时并加到小时数中
         const offWorkProgress = calculateOffWorkProgress();
 
@@ -497,8 +456,8 @@ function updateStats() {
 
         // 计算儿童节倒计时
         const childrenDay = new Date(2025, 5, 1); // 6月1日，月份从0开始，所以6月是5
-        const secondsToChildrenDay = getSecondsTo(childrenDay);
-        const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
+        const secondsToChildrenDay = TimeUtil.getSecondsTo(childrenDay);
+        const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = TimeUtil.secondsToDHMS(secondsToChildrenDay);
         const childrenProgress = ProgressUtil.calculateFestival(childrenDay);
 
         // 获取下一个二月最后一天
@@ -524,8 +483,8 @@ function updateStats() {
         }
 
         const februaryLastDayInfo = getNextFebruaryLastDay();
-        const secondsToFebruaryLastDay = getSecondsTo(februaryLastDayInfo.date);
-        const [febDays, febHours, febMinutes, febSeconds] = secondsToDHMS(secondsToFebruaryLastDay);
+        const secondsToFebruaryLastDay = TimeUtil.getSecondsTo(februaryLastDayInfo.date);
+        const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
         const februaryLastDayProgress = ProgressUtil.calculateFestival(februaryLastDayInfo.date);
 
         // 获取下一个农历二月二十九（如果没有则是二十八）
@@ -640,8 +599,8 @@ function updateStats() {
 
         // 获取农历二月特殊日期信息
         const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
-        const secondsToLunarFebruary = getSecondsTo(lunarFebruaryInfo.date);
-        const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = secondsToDHMS(secondsToLunarFebruary);
+        const secondsToLunarFebruary = TimeUtil.getSecondsTo(lunarFebruaryInfo.date);
+        const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
         const lunarFebruaryProgress = ProgressUtil.calculateFestival(lunarFebruaryInfo.date);
 
         // 创建统计项
@@ -773,8 +732,8 @@ function updateStats() {
                 progressText.textContent = `(${weekPercent.toFixed(1)}%)`;
             } else if (card.classList.contains('spring-festival')) {
                 const { currentSpring, nextSpring } = getSpringFestivalDates();
-                const secondsToSpring = getSecondsTo(nextSpring.date);
-                const [springDays, springHours, springMinutes, springSeconds] = secondsToDHMS(secondsToSpring);
+                const secondsToSpring = TimeUtil.getSecondsTo(nextSpring.date);
+                const [springDays, springHours, springMinutes, springSeconds] = TimeUtil.secondsToDHMS(secondsToSpring);
                 const springProgress = ProgressUtil.calculateFestival(nextSpring.date);
 
                 detail.textContent = `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟 ${springSeconds} 秒`;
@@ -782,8 +741,8 @@ function updateStats() {
                 progressText.textContent = `(${springProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('winter-holiday')) {
                 const companyHoliday = DATES.COMPANY_HOLIDAY;
-                const secondsToCompanyHoliday = getSecondsTo(companyHoliday);
-                const [companyDays, companyHours, companyMinutes, companySeconds] = secondsToDHMS(secondsToCompanyHoliday);
+                const secondsToCompanyHoliday = TimeUtil.getSecondsTo(companyHoliday);
+                const [companyDays, companyHours, companyMinutes, companySeconds] = TimeUtil.secondsToDHMS(secondsToCompanyHoliday);
                 const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
 
                 detail.textContent = `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`;
@@ -791,8 +750,8 @@ function updateStats() {
                 progressText.textContent = `(${companyProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('valentines-day')) {
                 const nextValentine = getNextFestival(2, 14);
-                const secondsToValentine = getSecondsTo(nextValentine);
-                const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = secondsToDHMS(secondsToValentine);
+                const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
+                const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
                 const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
 
                 detail.textContent = `还剩 ${valentineDays} 天 ${valentineHours} 小时 ${valentineMinutes} 分钟 ${valentineSeconds} 秒`;
@@ -800,8 +759,8 @@ function updateStats() {
                 progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('qingming-festival')) {
                 const nextQingming = getNextFestival(4, 4);
-                const secondsToQingming = getSecondsTo(nextQingming);
-                const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = secondsToDHMS(secondsToQingming);
+                const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
+                const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
                 const qingmingProgress = ProgressUtil.calculateFestival(nextQingming);
 
                 detail.textContent = `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`;
@@ -809,8 +768,8 @@ function updateStats() {
                 progressText.textContent = `(${qingmingProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('labor-day')) {
                 const nextLabor = getNextFestival(5, 1);
-                const secondsToLabor = getSecondsTo(nextLabor);
-                const [laborDays, laborHours, laborMinutes, laborSeconds] = secondsToDHMS(secondsToLabor);
+                const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
+                const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
                 const laborProgress = ProgressUtil.calculateFestival(nextLabor);
 
                 detail.textContent = `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`;
@@ -818,8 +777,8 @@ function updateStats() {
                 progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('children-day')) {
                 const childrenDay = new Date(2025, 5, 1);
-                const secondsToChildrenDay = getSecondsTo(childrenDay);
-                const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
+                const secondsToChildrenDay = TimeUtil.getSecondsTo(childrenDay);
+                const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = TimeUtil.secondsToDHMS(secondsToChildrenDay);
                 const childrenProgress = ProgressUtil.calculateFestival(childrenDay);
 
                 detail.textContent = `还剩 ${childrenDays}天 ${childrenHours}小时 ${childrenMinutes}分钟 ${childrenSeconds}秒`;
@@ -827,7 +786,7 @@ function updateStats() {
                 progressText.textContent = `(${childrenProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('off-work')) {
                 const secondsToOffWork = calculateTimeToOffWork();
-                const [days, hours, minutes, seconds] = secondsToDHMS(secondsToOffWork);
+                const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
                 const totalHours = days * 24 + hours;  // 将天数转换为小时并加到小时数中
                 const offWorkProgress = calculateOffWorkProgress();
 
@@ -896,8 +855,8 @@ function updateStats() {
                 }
 
                 const februaryLastDayInfo = getNextFebruaryLastDay();
-                const secondsToFebruaryLastDay = getSecondsTo(februaryLastDayInfo.date);
-                const [febDays, febHours, febMinutes, febSeconds] = secondsToDHMS(secondsToFebruaryLastDay);
+                const secondsToFebruaryLastDay = TimeUtil.getSecondsTo(februaryLastDayInfo.date);
+                const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
                 const februaryLastDayProgress = ProgressUtil.calculateFestival(februaryLastDayInfo.date);
 
                 detail.textContent = `还剩 ${febDays}天${febHours}时${febMinutes}分${febSeconds}秒`;
@@ -1004,8 +963,8 @@ function updateStats() {
                 }
 
                 const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
-                const secondsToLunarFebruary = getSecondsTo(lunarFebruaryInfo.date);
-                const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = secondsToDHMS(secondsToLunarFebruary);
+                const secondsToLunarFebruary = TimeUtil.getSecondsTo(lunarFebruaryInfo.date);
+                const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
                 const lunarFebruaryProgress = ProgressUtil.calculateFestival(lunarFebruaryInfo.date);
 
                 detail.textContent = `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`;
@@ -1029,7 +988,7 @@ function updateStats() {
             todayStart.setHours(0, 0, 0, 0);
             const secondsToday = Math.floor((now - todayStart) / 1000);
             const [, hoursToday, minutesToday, secondsToday2] = TimeUtil.secondsToDHMS(secondsToday);
-            const todayPercent = calculateProgress(secondsToday, 24 * 3600);
+            const todayPercent = ProgressUtil.calculate(secondsToday, TIME.SECONDS_PER_DAY);
 
             // 更新里程碑和特效
             ProgressEffects.updateMilestones(progressContainer, todayPercent);
@@ -1055,8 +1014,8 @@ function updateStats() {
             progressText.textContent = `(${weekPercent.toFixed(1)}%)`;
         } else if (card.classList.contains('month')) {
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            const minutesThisMonth = getElapsedMinutes(monthStart, now);
-            const [monthDays, monthHours, monthMinutes] = minutesToDHM(minutesThisMonth);
+            const minutesThisMonth = TimeUtil.getElapsedMinutes(monthStart, now);
+            const [monthDays, monthHours, monthMinutes] = TimeUtil.minutesToDHM(minutesThisMonth);
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             const monthPercent = ProgressUtil.calculate(minutesThisMonth, daysInMonth * TIME.MINUTES_PER_DAY);
 
@@ -1070,8 +1029,8 @@ function updateStats() {
             progressText.textContent = `(${monthPercent.toFixed(1)}%)`;
         } else if (card.classList.contains('year')) {
             const yearStart = new Date(now.getFullYear(), 0, 1);
-            const minutesThisYear = getElapsedMinutes(yearStart, now);
-            const [yearDays, yearHours, yearMinutes] = minutesToDHM(minutesThisYear);
+            const minutesThisYear = TimeUtil.getElapsedMinutes(yearStart, now);
+            const [yearDays, yearHours, yearMinutes] = TimeUtil.minutesToDHM(minutesThisYear);
             const isLeapYear = new Date(now.getFullYear(), 1, 29).getMonth() === 1;
             const daysInYear = isLeapYear ? 366 : 365;
             const yearPercent = ProgressUtil.calculate(minutesThisYear, daysInYear * TIME.MINUTES_PER_DAY);
@@ -1086,8 +1045,8 @@ function updateStats() {
             progressText.textContent = `(${yearPercent.toFixed(1)}%)`;
         } else if (card.classList.contains('spring-festival')) {
             const { currentSpring, nextSpring } = getSpringFestivalDates();
-            const secondsToSpring = getSecondsTo(nextSpring.date);
-            const [springDays, springHours, springMinutes, springSeconds] = secondsToDHMS(secondsToSpring);
+            const secondsToSpring = TimeUtil.getSecondsTo(nextSpring.date);
+            const [springDays, springHours, springMinutes, springSeconds] = TimeUtil.secondsToDHMS(secondsToSpring);
             const springProgress = ProgressUtil.calculateFestival(nextSpring.date);
 
             // 更新里程碑和特效
@@ -1100,8 +1059,8 @@ function updateStats() {
             progressText.textContent = `(${springProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('winter-holiday')) {
             const companyHoliday = DATES.COMPANY_HOLIDAY;
-            const secondsToCompanyHoliday = getSecondsTo(companyHoliday);
-            const [companyDays, companyHours, companyMinutes, companySeconds] = secondsToDHMS(secondsToCompanyHoliday);
+            const secondsToCompanyHoliday = TimeUtil.getSecondsTo(companyHoliday);
+            const [companyDays, companyHours, companyMinutes, companySeconds] = TimeUtil.secondsToDHMS(secondsToCompanyHoliday);
             const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
 
             // 更新里程碑和特效
@@ -1114,8 +1073,8 @@ function updateStats() {
             progressText.textContent = `(${companyProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('valentines-day')) {
             const nextValentine = getNextFestival(2, 14);
-            const secondsToValentine = getSecondsTo(nextValentine);
-            const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = secondsToDHMS(secondsToValentine);
+            const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
+            const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
             const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
 
             // 更新里程碑和特效
@@ -1128,8 +1087,8 @@ function updateStats() {
             progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('qingming-festival')) {
             const nextQingming = getNextFestival(4, 4);
-            const secondsToQingming = getSecondsTo(nextQingming);
-            const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = secondsToDHMS(secondsToQingming);
+            const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
+            const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
             const qingmingProgress = ProgressUtil.calculateFestival(nextQingming);
 
             // 更新里程碑和特效
@@ -1142,8 +1101,8 @@ function updateStats() {
             progressText.textContent = `(${qingmingProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('labor-day')) {
             const nextLabor = getNextFestival(5, 1);
-            const secondsToLabor = getSecondsTo(nextLabor);
-            const [laborDays, laborHours, laborMinutes, laborSeconds] = secondsToDHMS(secondsToLabor);
+            const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
+            const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
             const laborProgress = ProgressUtil.calculateFestival(nextLabor);
 
             // 更新里程碑和特效
@@ -1156,8 +1115,8 @@ function updateStats() {
             progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('children-day')) {
             const childrenDay = new Date(2025, 5, 1);
-            const secondsToChildrenDay = getSecondsTo(childrenDay);
-            const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = secondsToDHMS(secondsToChildrenDay);
+            const secondsToChildrenDay = TimeUtil.getSecondsTo(childrenDay);
+            const [childrenDays, childrenHours, childrenMinutes, childrenSeconds] = TimeUtil.secondsToDHMS(secondsToChildrenDay);
             const childrenProgress = ProgressUtil.calculateFestival(childrenDay);
 
             // 更新里程碑和特效
@@ -1170,7 +1129,7 @@ function updateStats() {
             progressText.textContent = `(${childrenProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('off-work')) {
             const secondsToOffWork = calculateTimeToOffWork();
-            const [days, hours, minutes, seconds] = secondsToDHMS(secondsToOffWork);
+            const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
             const totalHours = days * 24 + hours;  // 将天数转换为小时并加到小时数中
             const offWorkProgress = calculateOffWorkProgress();
 
@@ -1249,8 +1208,8 @@ function updateStats() {
             }
 
             const februaryLastDayInfo = getNextFebruaryLastDay();
-            const secondsToFebruaryLastDay = getSecondsTo(februaryLastDayInfo.date);
-            const [febDays, febHours, febMinutes, febSeconds] = secondsToDHMS(secondsToFebruaryLastDay);
+            const secondsToFebruaryLastDay = TimeUtil.getSecondsTo(februaryLastDayInfo.date);
+            const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
             const februaryLastDayProgress = ProgressUtil.calculateFestival(februaryLastDayInfo.date);
 
             // 更新里程碑和特效
@@ -1362,8 +1321,8 @@ function updateStats() {
             }
 
             const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
-            const secondsToLunarFebruary = getSecondsTo(lunarFebruaryInfo.date);
-            const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = secondsToDHMS(secondsToLunarFebruary);
+            const secondsToLunarFebruary = TimeUtil.getSecondsTo(lunarFebruaryInfo.date);
+            const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
             const lunarFebruaryProgress = ProgressUtil.calculateFestival(lunarFebruaryInfo.date);
 
             // 更新里程碑和特效
@@ -1406,9 +1365,6 @@ function updateAll() {
     updateStats();
     updatePreciseCountdown();
 }
-
-// 初始更新
-updateAll();
 
 // 更新间隔
 setInterval(updateStats, TIME.UPDATE_INTERVAL);
