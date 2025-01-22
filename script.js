@@ -5,9 +5,21 @@ const TIME = {
     UPDATE_INTERVAL: 1000
 };
 
+// 计算最近的1月23日17:30
+function getNextHoliday() {
+    const now = new Date();
+    const targetDate = new Date(now.getFullYear(), 0, 23, 17, 30);
+    if (now > targetDate) {
+        targetDate.setFullYear(targetDate.getFullYear() + 1);
+    }
+    return targetDate;
+}
+
 const DATES = {
     SALARY_DAY: 15,
-    COMPANY_HOLIDAY: new Date(2025, 0, 24)  // 2025-01-24
+    get COMPANY_HOLIDAY() {
+        return getNextHoliday();
+    }
 };
 
 // 时间工具类
@@ -636,7 +648,7 @@ function updateStats() {
                 className: "spring-festival"
             },
             {
-                title: "距离25年1月24日放假倒计时",
+                title: "距离1月23日17:30放假倒计时",
                 detail: `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`,
                 percent: companyProgress,
                 className: "winter-holiday"
@@ -1341,8 +1353,15 @@ function updateStats() {
 }
 
 function updatePreciseCountdown() {
-    const targetDate = DATES.COMPANY_HOLIDAY; // 2025年1月24日
     const now = new Date();
+    // 计算最近的1月23日17:30
+    const targetDate = new Date(now.getFullYear(), 0, 23, 17, 30);
+    
+    // 如果当前时间已经过了今年的1月23日17:30，就计算到明年的
+    if (now > targetDate) {
+        targetDate.setFullYear(targetDate.getFullYear() + 1);
+    }
+    
     const timeDiff = targetDate - now;
     
     if (timeDiff <= 0) {
