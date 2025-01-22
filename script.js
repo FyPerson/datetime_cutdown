@@ -701,9 +701,9 @@ function updateStats() {
             {
                 title: "距离下班",
                 detail: secondsToOffWork === -1 
-                    ? "未上班" 
+                    ? "今天还未到上班时间" 
                     : secondsToOffWork === 0 
-                    ? "已下班" 
+                    ? "今日已下班，请好好休息" 
                     : `还剩 ${totalHours} 小时 ${minutes} 分钟 ${seconds} 秒`,
                 percent: offWorkProgress,
                 className: "off-work"
@@ -839,9 +839,9 @@ function updateStats() {
                 const offWorkProgress = calculateOffWorkProgress();
 
                 detail.textContent = secondsToOffWork === -1 
-                    ? "未上班" 
+                    ? "今天还未到上班时间" 
                     : secondsToOffWork === 0 
-                    ? "已下班" 
+                    ? "今日已下班，请好好休息" 
                     : `还剩 ${totalHours} 小时 ${minutes} 分钟 ${seconds} 秒`;
                 progressBar.style.width = `${offWorkProgress}%`;
                 progressText.textContent = `(${offWorkProgress.toFixed(1)}%)`;
@@ -1210,9 +1210,9 @@ function updateStats() {
 
             const detail = card.querySelector('.stat-detail');
             detail.textContent = secondsToOffWork === -1 
-                ? "未上班" 
+                ? "今天还未到上班时间" 
                 : secondsToOffWork === 0 
-                ? "已下班" 
+                ? "今日已下班，请好好休息" 
                 : `还剩 ${totalHours} 小时 ${minutes} 分钟 ${seconds} 秒`;
             progressBar.style.width = `${offWorkProgress}%`;
             progressText.textContent = `(${offWorkProgress.toFixed(1)}%)`;
