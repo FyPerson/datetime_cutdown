@@ -5,6 +5,18 @@ const TIME = {
     UPDATE_INTERVAL: 1000
 };
 
+const HOLIDAY_DATES = {
+    START: new Date(2025, 0, 23, 17, 30),  // 2025-01-23 17:30
+    END: new Date(2025, 1, 10, 9, 0)       // 2025-02-10 09:00
+};
+
+const DATES = {
+    SALARY_DAY: 15,
+    get COMPANY_HOLIDAY() {
+        return getNextHoliday();
+    }
+};
+
 // 计算最近的1月23日17:30
 function getNextHoliday() {
     const now = new Date();
@@ -14,13 +26,6 @@ function getNextHoliday() {
     }
     return targetDate;
 }
-
-const DATES = {
-    SALARY_DAY: 15,
-    get COMPANY_HOLIDAY() {
-        return getNextHoliday();
-    }
-};
 
 // 时间工具类
 const TimeUtil = {
@@ -1354,28 +1359,39 @@ function updateStats() {
 
 function updatePreciseCountdown() {
     const now = new Date();
-    // 计算最近的1月23日17:30
-    const targetDate = new Date(now.getFullYear(), 0, 23, 17, 30);
+    const titleElement = document.getElementById('countdown-title');
     
-    // 如果当前时间已经过了今年的1月23日17:30，就计算到明年的
-    if (now > targetDate) {
-        targetDate.setFullYear(targetDate.getFullYear() + 1);
-    }
-    
-    const timeDiff = targetDate - now;
-    
-    if (timeDiff <= 0) {
-        document.getElementById('precise-countdown').textContent = '00:00:00:000';
+    // 如果在放假期间（2025-01-23 17:30 到 2025-02-10 09:00之间）
+    if (now >= HOLIDAY_DATES.START && now < HOLIDAY_DATES.END) {
+        titleElement.textContent = '春节假期:';
+        document.getElementById('precise-countdown').textContent = '放假中 ∞';
         return;
     }
     
+    // 如果已经开始上班（2025-02-10 09:00之后）
+    if (now >= HOLIDAY_DATES.END) {
+        titleElement.textContent = '已经开工:';
+        const timeDiff = now - HOLIDAY_DATES.END;
+        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+        const milliseconds = Math.floor(timeDiff % 1000);
+
+        document.getElementById('precise-countdown').textContent = 
+            `已开工 ${days} 天 ${hours} 小时 ${minutes} 分钟 ${seconds} 秒 ${String(milliseconds).padStart(3, '0')}`;
+        return;
+    }
+    
+    // 还在放假前（2025-01-23 17:30之前）
+    titleElement.textContent = '距离1月23日17:30还有:';
+    const timeDiff = HOLIDAY_DATES.START - now;
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
     const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
     const milliseconds = timeDiff % 1000;
     
     const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
-    
     document.getElementById('precise-countdown').textContent = formattedTime;
 }
 
