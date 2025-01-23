@@ -198,31 +198,6 @@ function getNextFestival(month, day) {
     return festivalThisYear;
 }
 
-// 计算节日倒计时进度
-function calculateFestivalProgress(festivalDate) {
-    const now = new Date();
-    const timeDiff = festivalDate - now;
-    
-    // 如果节日已经过去，返回100%
-    if (timeDiff <= 0) {
-        return 100;
-    }
-    
-    // 获取最近的上一个节日（默认为年初）
-    const prevFestival = new Date(now.getFullYear(), 0, 1);
-    
-    // 计算从上一个节日到目标节日的总时间
-    const totalDuration = festivalDate - prevFestival;
-    // 计算从现在到目标节日的剩余时间
-    const remainingDuration = festivalDate - now;
-    
-    // 计算已经过去的时间占比
-    const progress = ((totalDuration - remainingDuration) / totalDuration) * 100;
-    
-    // 确保进度在0-100之间
-    return Math.max(0, Math.min(100, progress));
-}
-
 // 计算距离下班的时间（返回秒数）
 function calculateTimeToOffWork() {
     const now = new Date();
