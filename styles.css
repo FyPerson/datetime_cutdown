@@ -180,11 +180,6 @@ h1 {
     overflow: hidden;
 }
 
-.stat-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md) var(--shadow-color);
-}
-
 .stat-header {
     font-weight: bold;
     font-size: var(--font-size-lg);
@@ -356,7 +351,6 @@ h1 {
 .stat-item.today {
     --stat-color: #C6DFC8;  /* 使用绿色表示今日进度 */
     background-color: rgba(198, 223, 200, 0.1);
-    cursor: pointer;
 }
 
 .stat-item.week {
