@@ -1,30 +1,54 @@
 <!DOCTYPE html>
-<html lang="zh" data-theme="dark">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <meta name="description" content="倒计时清单 - 帮助您追踪重要日期和事件">
+    
+    <!-- Open Graph 元数据 -->
+    <meta property="og:title" content="倒计时清单">
+    <meta property="og:description" content="帮助您追踪重要日期和事件的倒计时工具">
+    <meta property="og:image" content="/preview.jpg">
+    
     <title>倒计时清单</title>
+    
+    <!-- 合并字体资源请求 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-...（完整哈希值）"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="preload" href="./script.js" as="script">
+    
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./sakura.css">
-    <!-- 只加载需要的图标 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/solid.min.css">
+    
+    <!-- 添加 DNS 预连接 -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <script src="./lunar.js" defer></script>
     <script src="./sakura.js" defer></script>
     <script src="./script.js" defer></script>
 </head>
 <body>
     <header>
-        <nav class="theme-switch">
-            <button id="theme-toggle" aria-label="切换主题">
+        <nav class="theme-switch" aria-label="主题切换">
+            <button id="theme-toggle" aria-label="切换主题" role="switch">
+                <!-- 添加过渡动画 -->
                 <i class="fas fa-sun light-icon" aria-hidden="true"></i>
                 <i class="fas fa-moon dark-icon" aria-hidden="true"></i>
                 <span class="theme-text">切换主题</span>
             </button>
         </nav>
-        <h1><i class="fas fa-hourglass-half" aria-hidden="true"></i> 倒计时清单</h1>
+        <h1>
+            <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+            <span>倒计时清单</span> <!-- 添加文字包裹 -->
+        </h1>
     </header>
+
+    <!-- 添加页面加载状态 -->
+    <div id="loading-state" aria-live="polite" class="visually-hidden">页面加载中...</div>
 
     <main>
         <section id="current-time" class="current-time">
@@ -48,5 +72,15 @@
 
         <section id="stats-container"></section>
     </main>
+
+    <!-- 添加结构化数据 -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "倒计时清单",
+        "description": "帮助用户追踪重要日期和事件的倒计时工具"
+    }
+    </script>
 </body>
 </html>
