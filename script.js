@@ -1451,4 +1451,18 @@ function getNextLunarFestival(month, day) {
 document.addEventListener('DOMContentLoaded', function() {
     const loadingSpinner = document.getElementById('loading-state');
     loadingSpinner.classList.add('hidden');
+
+    // 添加点击涟漪效果
+    document.querySelectorAll('.countdown-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple-effect';
+            const rect = card.getBoundingClientRect();
+            ripple.style.left = `${e.clientX - rect.left}px`;
+            ripple.style.top = `${e.clientY - rect.top}px`;
+            this.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
 });

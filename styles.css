@@ -211,7 +211,7 @@ h1 {
         color-mix(in srgb, var(--stat-color) 70%, transparent) 100%
     );
     border-radius: var(--border-radius-sm);
-    transition: width var(--transition-speed) var(--transition-timing);
+    transition: width 0.5s ease-in-out;
     position: relative;
     overflow: hidden;
 }
@@ -570,4 +570,47 @@ h1 {
 /* 当页面加载完成后隐藏加载动画 */
 .loading-spinner.hidden {
     display: none;
+}
+
+/* 在现有卡片样式基础上添加 */
+.countdown-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform-origin: center bottom;
+}
+
+.countdown-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.progress-bar {
+    transition: width 0.5s ease-in-out;
+}
+
+.ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    width: 100px;
+    height: 100px;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+main {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
