@@ -74,6 +74,27 @@
         </section>
 
         <section id="stats-container"></section>
+
+        <section class="huangli-container">
+            <div class="huangli-card">
+                <h2><i class="fas fa-calendar-check"></i> 今日黄历</h2>
+                <div class="lunar-info">
+                    <div id="lunar-date" class="lunar-date"></div>
+                    <div id="gan-zhi" class="gan-zhi"></div>
+                    <div id="jie-qi" class="jie-qi"></div>
+                </div>
+                <div class="huangli-content">
+                    <div class="yi-items">
+                        <div class="huangli-header yi-header">宜</div>
+                        <ul class="huangli-list" id="yi-items"></ul>
+                    </div>
+                    <div class="ji-items">
+                        <div class="huangli-header ji-header">忌</div>
+                        <ul class="huangli-list" id="ji-items"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- 添加结构化数据 -->
@@ -85,5 +106,10 @@
         "description": "帮助用户追踪重要日期和事件的倒计时工具"
     }
     </script>
+    
+    <!-- 在body结束标签前添加脚本引用 -->
+    <script src="lunar.js"></script>
+    <script src="huangli.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

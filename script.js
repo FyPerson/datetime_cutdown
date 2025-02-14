@@ -1450,19 +1450,82 @@ function getNextLunarFestival(month, day) {
 // 在文档加载完成后隐藏加载动画
 document.addEventListener('DOMContentLoaded', function() {
     const loadingSpinner = document.getElementById('loading-state');
-    loadingSpinner.classList.add('hidden');
+    const mainContent = document.querySelector('main');
+    
+    mainContent.classList.add('hidden');
+    
+    setTimeout(() => {
+        loadingSpinner.remove();
+        mainContent.classList.remove('hidden');
 
-    // 添加点击涟漪效果
-    document.querySelectorAll('.countdown-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple-effect';
-            const rect = card.getBoundingClientRect();
-            ripple.style.left = `${e.clientX - rect.left}px`;
-            ripple.style.top = `${e.clientY - rect.top}px`;
-            this.appendChild(ripple);
-            
-            setTimeout(() => ripple.remove(), 600);
+        // 使用更可靠的事件绑定方式
+        document.querySelectorAll('.countdown-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple-effect';
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                // 确保移除旧的涟漪效果
+                const existingRipples = this.querySelectorAll('.ripple-effect');
+                existingRipples.forEach(r => r.remove());
+                
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
         });
-    });
+    }, 500);
+});
+
+function updateHuangLi() {
+    console.log('updateHuangLi called');
+    
+    const lunar = Lunar.fromDate(new Date());
+    console.log('lunar object:', lunar);
+    
+    const huangLi = HuangLiSystem.calculateHuangLi(lunar);
+    console.log('huangLi result:', huangLi);
+    
+    // 更新农历信息
+    const lunarDateEl = document.getElementById('lunar-date');
+    if (lunarDateEl) {
+        lunarDateEl.textContent = `农历 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+    } else {
+        console.error('lunar-date element not found');
+    }
+    
+    const ganZhiEl = document.getElementById('gan-zhi');
+    if (ganZhiEl) {
+        ganZhiEl.textContent = `${huangLi.ganZhi}日`;
+    }
+    
+    const jieQiEl = document.getElementById('jie-qi');
+    if (jieQiEl) {
+        jieQiEl.textContent = huangLi.jieQi ? `节气：${huangLi.jieQi}` : '';
+    }
+    
+    // 更新宜忌列表
+    const renderList = (selector, items) => {
+        const ul = document.getElementById(selector);
+        if (ul) {
+            ul.innerHTML = items.length > 0 ? 
+                items.map(item => `<li>${item}</li>`).join('') :
+                '<li>诸事不宜</li>';
+        } else {
+            console.error(`${selector} element not found`);
+        }
+    };
+    
+    renderList('yi-items', huangLi.yi);
+    renderList('ji-items', huangLi.ji);
+}
+
+// 确保DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    updateHuangLi();
 });

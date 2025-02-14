@@ -574,6 +574,8 @@ h1 {
 
 /* 在现有卡片样式基础上添加 */
 .countdown-card {
+    position: relative;
+    overflow: hidden;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     transform-origin: center bottom;
 }
@@ -589,17 +591,18 @@ h1 {
 
 .ripple-effect {
     position: absolute;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.4);
-    transform: scale(0);
-    animation: ripple 0.6s linear;
     width: 100px;
     height: 100px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
 }
 
 @keyframes ripple {
     to {
-        transform: scale(2);
+        transform: translate(-50%, -50%) scale(4);
         opacity: 0;
     }
 }
@@ -611,6 +614,108 @@ main {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 确保加载完成后显示内容 */
+main.hidden {
+    display: none;
+}
+
+/* 黄历卡片样式 */
+.huangli-container {
+    margin: 2rem auto;
+    max-width: 800px;
+}
+
+.huangli-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.lunar-info {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+.lunar-date {
+    font-size: 1.2rem;
+    color: var(--highlight-color);
+    margin-bottom: 0.5rem;
+}
+
+.gan-zhi, .jie-qi {
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+    margin-top: 0.5rem;
+}
+
+.huangli-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.huangli-header {
+    padding: 0.5rem;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.yi-header {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4CAF50;
+}
+
+.ji-header {
+    background: rgba(244, 67, 54, 0.15);
+    color: #F44336;
+}
+
+.huangli-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.huangli-list li {
+    padding: 0.8rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.huangli-list li:hover {
+    transform: translateX(5px);
+    background: rgba(255,255,255,0.1);
+}
+
+/* 移动端适配 */
+@media (max-width: 600px) {
+    .huangli-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .huangli-card {
+        margin: 1rem;
+        padding: 1rem;
+    }
 }
