@@ -434,10 +434,10 @@ function updateStats() {
             salaryProgress = 100;
         } else {
             const timeDiff = nextSalaryDate - now;
-            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-            const hours = String(Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
-            const minutes = String(Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-            const seconds = String(Math.floor((timeDiff % (1000 * 60)) / 1000)).padStart(2, '0');
+            const days = formatTimeNumber(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = formatTimeNumber((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = formatTimeNumber((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = formatTimeNumber((timeDiff % (1000 * 60)) / 1000);
             
             salaryDetail = `还剩 ${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
             
@@ -446,7 +446,7 @@ function updateStats() {
             monthStart.setDate(salaryDay);
             monthStart.setMonth(monthStart.getMonth() - 1);
             const totalDays = (nextSalaryDate - monthStart) / (1000 * 60 * 60 * 24);
-            const passedDays = totalDays - days - (Number(hours) + Number(minutes)/60 + Number(seconds)/3600)/24;
+            const passedDays = totalDays - days - (hours + minutes/60 + seconds/3600)/24;
             salaryProgress = (passedDays / totalDays) * 100;
         }
 
@@ -825,10 +825,10 @@ function updateStats() {
                     salaryProgress = 100;
                 } else {
                     const timeDiff = nextSalaryDate - now;
-                    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-                    const hours = String(Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
-                    const minutes = String(Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-                    const seconds = String(Math.floor((timeDiff % (1000 * 60)) / 1000)).padStart(2, '0');
+                    const days = formatTimeNumber(timeDiff / (1000 * 60 * 60 * 24));
+                    const hours = formatTimeNumber((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = formatTimeNumber((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = formatTimeNumber((timeDiff % (1000 * 60)) / 1000);
                     
                     salaryDetail = `还剩 ${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
                     
@@ -836,7 +836,7 @@ function updateStats() {
                     monthStart.setDate(salaryDay);
                     monthStart.setMonth(monthStart.getMonth() - 1);
                     const totalDays = (nextSalaryDate - monthStart) / (1000 * 60 * 60 * 24);
-                    const passedDays = totalDays - days - (Number(hours) + Number(minutes)/60 + Number(seconds)/3600)/24;
+                    const passedDays = totalDays - days - (hours + minutes/60 + seconds/3600)/24;
                     salaryProgress = (passedDays / totalDays) * 100;
                 }
 
@@ -1182,10 +1182,10 @@ function updateStats() {
                 salaryProgress = 100;
             } else {
                 const timeDiff = nextSalaryDate - now;
-                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-                const hours = String(Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
-                const minutes = String(Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-                const seconds = String(Math.floor((timeDiff % (1000 * 60)) / 1000)).padStart(2, '0');
+                const days = formatTimeNumber(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = formatTimeNumber((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = formatTimeNumber((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = formatTimeNumber((timeDiff % (1000 * 60)) / 1000);
                 
                 salaryDetail = `还剩 ${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
                 
@@ -1193,7 +1193,7 @@ function updateStats() {
                 monthStart.setDate(salaryDay);
                 monthStart.setMonth(monthStart.getMonth() - 1);
                 const totalDays = (nextSalaryDate - monthStart) / (1000 * 60 * 60 * 24);
-                const passedDays = totalDays - days - (Number(hours) + Number(minutes)/60 + Number(seconds)/3600)/24;
+                const passedDays = totalDays - days - (hours + minutes/60 + seconds/3600)/24;
                 salaryProgress = (passedDays / totalDays) * 100;
             }
 
@@ -1529,3 +1529,42 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOMContentLoaded event fired');
     updateHuangLi();
 });
+
+// 添加补零函数
+function padZero(num) {
+    return num < 10 ? `0${num}` : num;
+}
+
+// 修改时间格式化函数
+function formatTime(time) {
+    const days = Math.floor(time / (24 * 3600 * 1000));
+    const hours = Math.floor((time % (24 * 3600 * 1000)) / (3600 * 1000));
+    const minutes = Math.floor((time % (3600 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((time % (60 * 1000)) / 1000);
+
+    return {
+        days,
+        hours: padZero(hours),
+        minutes: padZero(minutes),
+        seconds: padZero(seconds)
+    };
+}
+
+// 修改显示函数
+function updateCountdown(targetDate, elementId) {
+    const now = new Date();
+    const timeLeft = targetDate - now;
+    
+    if (timeLeft > 0) {
+        const { days, hours, minutes, seconds } = formatTime(timeLeft);
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = `还剩 ${days} 天 ${hours} 小时 ${minutes} 分钟 ${seconds} 秒`;
+        }
+    }
+}
+
+// 在文件开头添加统一的时间格式化函数
+function formatTimeNumber(num) {
+    return Math.floor(num); // 确保是整数
+}
