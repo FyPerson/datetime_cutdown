@@ -638,12 +638,6 @@ function updateStats() {
                 className: "spring-festival"
             },
             {
-                title: "距离年前放假倒计时",
-                detail: `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`,
-                percent: companyProgress,
-                className: "winter-holiday"
-            },
-            {
                 title: `${nextValentine.getFullYear()}年情人节倒计时`,
                 detail: `还剩 ${valentineDays} 天 ${valentineHours} 小时 ${valentineMinutes} 分钟 ${valentineSeconds} 秒`,
                 percent: valentineProgress,
@@ -753,15 +747,6 @@ function updateStats() {
                 detail.textContent = `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟 ${springSeconds} 秒`;
                 progressBar.style.width = `${springProgress}%`;
                 progressText.textContent = `(${springProgress.toFixed(1)}%)`;
-            } else if (card.classList.contains('winter-holiday')) {
-                const companyHoliday = DATES.COMPANY_HOLIDAY;
-                const secondsToCompanyHoliday = TimeUtil.getSecondsTo(companyHoliday);
-                const [companyDays, companyHours, companyMinutes, companySeconds] = TimeUtil.secondsToDHMS(secondsToCompanyHoliday);
-                const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
-
-                detail.textContent = `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`;
-                progressBar.style.width = `${companyProgress}%`;
-                progressText.textContent = `(${companyProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('valentines-day')) {
                 const nextValentine = getNextFestival(2, 14);
                 const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
@@ -1089,20 +1074,6 @@ function updateStats() {
             detail.textContent = `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟 ${springSeconds} 秒`;
             progressBar.style.width = `${springProgress}%`;
             progressText.textContent = `(${springProgress.toFixed(1)}%)`;
-        } else if (card.classList.contains('winter-holiday')) {
-            const companyHoliday = DATES.COMPANY_HOLIDAY;
-            const secondsToCompanyHoliday = TimeUtil.getSecondsTo(companyHoliday);
-            const [companyDays, companyHours, companyMinutes, companySeconds] = TimeUtil.secondsToDHMS(secondsToCompanyHoliday);
-            const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
-
-            // 更新里程碑和特效
-            ProgressEffects.updateMilestones(progressContainer, companyProgress);
-            ProgressEffects.updateProgressText(progressText, companyProgress);
-
-            const detail = card.querySelector('.stat-detail');
-            detail.textContent = `还剩 ${companyDays} 天 ${companyHours} 小时 ${companyMinutes} 分钟 ${companySeconds} 秒`;
-            progressBar.style.width = `${companyProgress}%`;
-            progressText.textContent = `(${companyProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('valentines-day')) {
             const nextValentine = getNextFestival(2, 14);
             const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
