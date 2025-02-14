@@ -1475,3 +1475,9 @@ function getNextLunarFestival(month, day) {
     
     return festivalDate;
 }
+
+// 在文档加载完成后隐藏加载动画
+document.addEventListener('DOMContentLoaded', function() {
+    const loadingSpinner = document.getElementById('loading-state');
+    loadingSpinner.classList.add('hidden');
+});

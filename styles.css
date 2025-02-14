@@ -545,3 +545,29 @@ h1 {
         transform: translate(-50%, 0);
     }
 }
+
+.loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 1000;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.loading-text {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+/* 当页面加载完成后隐藏加载动画 */
+.loading-spinner.hidden {
+    display: none;
+}
