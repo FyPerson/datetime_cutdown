@@ -14,7 +14,7 @@
     
     <!-- 合并字体资源请求 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          integrity="sha512-...（完整哈希值）"
+          integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
           crossorigin="anonymous"
           referrerpolicy="no-referrer">
     
@@ -27,7 +27,10 @@
     
     <!-- 添加 DNS 预连接 -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    <!-- 统一使用defer属性的脚本引用 -->
     <script src="./lunar.js" defer></script>
+    <script src="./huangli.js" defer></script>
     <script src="./sakura.js" defer></script>
     <script src="./script.js" defer></script>
 </head>
@@ -79,7 +82,6 @@
             <div class="huangli-card">
                 <h2><i class="fas fa-calendar-check"></i> 今日黄历</h2>
                 <div class="lunar-info">
-                    <div id="lunar-date" class="lunar-date"></div>
                     <div id="gan-zhi" class="gan-zhi"></div>
                     <div id="jie-qi" class="jie-qi"></div>
                 </div>
@@ -106,10 +108,5 @@
         "description": "帮助用户追踪重要日期和事件的倒计时工具"
     }
     </script>
-    
-    <!-- 在body结束标签前添加脚本引用 -->
-    <script src="lunar.js"></script>
-    <script src="huangli.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
