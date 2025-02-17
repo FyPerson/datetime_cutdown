@@ -727,13 +727,14 @@ main.hidden {
     gap: 2rem;
     max-width: 1440px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: 0 2rem;
 }
 
 .side-content {
     position: sticky;
     top: 2rem;
     height: fit-content;
+    margin-top: 4.5rem; /* 调整垂直位置，与第一行卡片对齐 */
 }
 
 .side-card {
@@ -750,20 +751,18 @@ main.hidden {
 }
 
 .side-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    text-align: center;
     margin-bottom: 1.5rem;
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.yi-content .side-title i {
+.yi-content .side-title {
     color: #4CAF50;
 }
 
-.ji-content .side-title i {
+.ji-content .side-title {
     color: #F44336;
 }
 
@@ -771,27 +770,41 @@ main.hidden {
     list-style: none;
     padding: 0;
     margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 每行显示两个 */
+    gap: 0.5rem; /* 项目之间的间距 */
 }
 
 .side-list li {
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.75rem;
+    padding: 0.75rem 0.5rem;
     border-radius: 8px;
-    background: var(--card-hover);
     transition: all 0.2s ease;
     font-size: 0.95rem;
+    text-align: center;
 }
 
-.side-list li:hover {
-    transform: translateX(5px);
-}
-
+/* 宜事项样式 */
 .yi-content .side-list li {
-    border-left: 3px solid #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1); /* 绿色透明背景 */
+    color: #4CAF50; /* 绿色文字 */
+    border: 1px solid rgba(76, 175, 80, 0.2);
 }
 
+.yi-content .side-list li:hover {
+    background-color: rgba(76, 175, 80, 0.2);
+    transform: translateY(-2px);
+}
+
+/* 忌事项样式 */
 .ji-content .side-list li {
-    border-left: 3px solid #F44336;
+    background-color: rgba(244, 67, 54, 0.1); /* 红色透明背景 */
+    color: #F44336; /* 红色文字 */
+    border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.ji-content .side-list li:hover {
+    background-color: rgba(244, 67, 54, 0.2);
+    transform: translateY(-2px);
 }
 
 /* 响应式布局 */
@@ -824,4 +837,11 @@ main.hidden {
 
 [data-theme="dark"] .side-list li {
     background: var(--card-hover-dark, #363636);
+}
+
+/* 响应式布局调整 */
+@media (max-width: 1400px) {
+    .side-list {
+        grid-template-columns: 1fr; /* 在较小屏幕上改为单列 */
+    }
 }
