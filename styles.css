@@ -733,8 +733,9 @@ main.hidden {
 .side-content {
     position: sticky;
     top: 2rem;
-    height: fit-content;
-    margin-top: 4.5rem; /* 调整垂直位置，与第一行卡片对齐 */
+    height: calc(100vh - 4rem); /* 设置高度为视口高度减去上下边距 */
+    display: flex;              /* 添加 flex 布局 */
+    align-items: center;        /* 垂直居中 */
 }
 
 .side-card {
@@ -743,6 +744,10 @@ main.hidden {
     padding: 1.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;               /* 确保卡片占满容器宽度 */
 }
 
 .side-card:hover {
@@ -771,8 +776,10 @@ main.hidden {
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 每行显示两个 */
-    gap: 0.5rem; /* 项目之间的间距 */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 240px;
 }
 
 .side-list li {
@@ -781,6 +788,7 @@ main.hidden {
     transition: all 0.2s ease;
     font-size: 0.95rem;
     text-align: center;
+    width: 100%;
 }
 
 /* 宜事项样式 */
@@ -815,6 +823,7 @@ main.hidden {
     }
 
     .side-content {
+        height: auto;          /* 在小屏幕上取消固定高度 */
         position: static;
     }
 }
