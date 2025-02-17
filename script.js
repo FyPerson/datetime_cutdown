@@ -1482,30 +1482,25 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateHuangLi() {
-    console.log('updateHuangLi called');
-    
     const lunar = Lunar.fromDate(new Date());
-    console.log('lunar object:', lunar);
-    
-    const huangLi = HuangLiSystem.calculateHuangLi(lunar);
-    console.log('huangLi result:', huangLi);
     
     // 更新农历信息
     const lunarDateEl = document.getElementById('lunar-date');
     if (lunarDateEl) {
         lunarDateEl.textContent = `农历 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-    } else {
-        console.error('lunar-date element not found');
     }
     
+    // 更新干支
     const ganZhiEl = document.getElementById('gan-zhi');
     if (ganZhiEl) {
-        ganZhiEl.textContent = `${huangLi.ganZhi}日`;
+        ganZhiEl.textContent = `${lunar.getDayInGanZhi()}日`;
     }
     
+    // 更新节气
     const jieQiEl = document.getElementById('jie-qi');
     if (jieQiEl) {
-        jieQiEl.textContent = huangLi.jieQi ? `节气：${huangLi.jieQi}` : '';
+        const jieQi = lunar.getJieQi();
+        jieQiEl.textContent = jieQi ? `节气：${jieQi}` : '';
     }
     
     // 更新宜忌列表
@@ -1515,18 +1510,20 @@ function updateHuangLi() {
             ul.innerHTML = items.length > 0 ? 
                 items.map(item => `<li>${item}</li>`).join('') :
                 '<li>诸事不宜</li>';
-        } else {
-            console.error(`${selector} element not found`);
         }
     };
     
-    renderList('yi-items', huangLi.yi);
-    renderList('ji-items', huangLi.ji);
+    // 获取宜忌数据
+    const yi = lunar.getDayYi();
+    const ji = lunar.getDayJi();
+    
+    // 渲染宜忌列表
+    renderList('yi-items', yi);
+    renderList('ji-items', ji);
 }
 
 // 确保DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded event fired');
     updateHuangLi();
 });
 
