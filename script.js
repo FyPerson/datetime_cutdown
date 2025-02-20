@@ -703,6 +703,37 @@ function updateStats() {
             }
         ];
 
+        // 定义进度类型的卡片
+        const progressTypes = ['today', 'week', 'month', 'year'];
+
+        // 按照剩余时间排序卡片
+        stats.sort((a, b) => {
+            // 首先保证进度类型的卡片在最前
+            if (progressTypes.some(type => a.className.includes(type))) return -1;
+            if (progressTypes.some(type => b.className.includes(type))) return 1;
+
+            // 提取剩余时间并转换为秒
+            const extractRemainingSeconds = (detail) => {
+                const dayMatch = detail.match(/还剩\s*(\d+)\s*天/);
+                const hourMatch = detail.match(/(\d+)\s*小时/);
+                const minuteMatch = detail.match(/(\d+)\s*分钟/);
+                const secondMatch = detail.match(/(\d+)\s*秒/);
+
+                let totalSeconds = 0;
+                if (dayMatch) totalSeconds += parseInt(dayMatch[1]) * 24 * 3600;
+                if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600;
+                if (minuteMatch) totalSeconds += parseInt(minuteMatch[1]) * 60;
+                if (secondMatch) totalSeconds += parseInt(secondMatch[1]);
+
+                return totalSeconds;
+            };
+
+            const remainingSecondsA = extractRemainingSeconds(a.detail);
+            const remainingSecondsB = extractRemainingSeconds(b.detail);
+
+            return remainingSecondsA - remainingSecondsB;
+        });
+
         // 清空容器
         statsContainer.innerHTML = '';
 
