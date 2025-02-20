@@ -460,10 +460,9 @@ function updateStats() {
         function getNextFebruaryLastDay() {
             const now = new Date();
             let year = now.getFullYear();
-            let month = now.getMonth();
             
             // 如果当前月份已经过了2月，那么取下一年的2月
-            if (month >= 1) { // 0是一月，1是二月
+            if (now.getMonth() > 1) { // 0是一月，1是二月
                 year += 1;
             }
             
@@ -876,13 +875,15 @@ function updateStats() {
                 progressText.textContent = `(${salaryProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('february-last-day')) {
                 function getNextFebruaryLastDay() {
+                    const now = new Date();
                     let year = now.getFullYear();
-                    let month = now.getMonth();
                     
-                    if (month >= 1) {
+                    // 如果当前月份已经过了2月，那么取下一年的2月
+                    if (now.getMonth() > 1) { // 0是一月，1是二月
                         year += 1;
                     }
                     
+                    // 判断是否为闰年
                     const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
                     const lastDay = isLeapYear ? 29 : 28;
                     
@@ -1238,13 +1239,15 @@ function updateStats() {
             progressText.textContent = `(${salaryProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('february-last-day')) {
             function getNextFebruaryLastDay() {
+                const now = new Date();
                 let year = now.getFullYear();
-                let month = now.getMonth();
                 
-                if (month >= 1) {
+                // 如果当前月份已经过了2月，那么取下一年的2月
+                if (now.getMonth() > 1) { // 0是一月，1是二月
                     year += 1;
                 }
                 
+                // 判断是否为闰年
                 const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
                 const lastDay = isLeapYear ? 29 : 28;
                 
