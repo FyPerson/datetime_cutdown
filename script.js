@@ -660,7 +660,8 @@ function updateStats() {
                 title: `${nextQingming.getFullYear()}年清明节倒计时`,
                 detail: `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`,
                 percent: qingmingProgress,
-                className: "qingming-festival"
+                className: "qingming-festival",
+                targetTime: `清明: ${nextQingming.getMonth() + 1}月${nextQingming.getDate()}日`
             },
             {
                 title: `${nextLabor.getFullYear()}年劳动节倒计时`,
