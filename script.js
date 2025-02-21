@@ -323,8 +323,43 @@ function updateDateTime() {
         const seconds = String(now.getSeconds()).padStart(2, '0');
         const timeStr = `${hours}:${minutes}:${seconds}`;
         
-        // 公历日期显示 - 简化格式
-        const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日星期${['日', '一', '二', '三', '四', '五', '六'][now.getDay()]} ${hours}:${minutes}:${seconds}`;
+        // 计算当前是第几周
+        const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
+        const pastDaysOfYear = (now - firstDayOfYear) / 86400000;
+        const currentWeek = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+
+        // 获取星座
+        const zodiacSigns = [
+            {name: "魔羯", start: [1, 1], end: [1, 19]},
+            {name: "水瓶", start: [1, 20], end: [2, 18]},
+            {name: "双鱼", start: [2, 19], end: [3, 20]},
+            {name: "白羊", start: [3, 21], end: [4, 19]},
+            {name: "金牛", start: [4, 20], end: [5, 20]},
+            {name: "双子", start: [5, 21], end: [6, 21]},
+            {name: "巨蟹", start: [6, 22], end: [7, 22]},
+            {name: "狮子", start: [7, 23], end: [8, 22]},
+            {name: "处女", start: [8, 23], end: [9, 22]},
+            {name: "天秤", start: [9, 23], end: [10, 23]},
+            {name: "天蝎", start: [10, 24], end: [11, 22]},
+            {name: "射手", start: [11, 23], end: [12, 21]},
+            {name: "魔羯", start: [12, 22], end: [12, 31]}
+        ];
+        
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+        const date = month * 100 + day;
+        let zodiacSign = "魔羯";
+        for (let sign of zodiacSigns) {
+            const start = sign.start[0] * 100 + sign.start[1];
+            const end = sign.end[0] * 100 + sign.end[1];
+            if (date >= start && date <= end) {
+                zodiacSign = sign.name;
+                break;
+            }
+        }
+
+        // 修改公历日期显示格式
+        const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日星期${['日', '一', '二', '三', '四', '五', '六'][now.getDay()]} ${hours}:${minutes}:${seconds} | 第${currentWeek}周 | ${zodiacSign}座`;
         solarDateText.textContent = dateStr;
 
         // 农历日期显示 - 简化格式
