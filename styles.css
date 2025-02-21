@@ -879,3 +879,19 @@ main.hidden {
         grid-template-columns: 1fr; /* 在较小屏幕上改为单列 */
     }
 }
+
+/* 修改目标时间样式 */
+.target-time {
+    position: absolute;
+    bottom: var(--spacing-sm);
+    right: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--stat-color);  /* 改用卡片的主题色 */
+    opacity: 0.85;  /* 稍微调高不透明度 */
+    font-style: italic;
+}
+
+/* 添加悬停效果 */
+.stat-item:hover .target-time {
+    opacity: 1;  /* 悬停时完全不透明 */
+}

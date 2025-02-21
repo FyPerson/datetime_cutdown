@@ -320,9 +320,14 @@ function updateDateTime() {
     lunarDate.textContent = lunarText;
 }
 
-function createStatElement(title, detail, percent, className) {
+function createStatElement(title, detail, percent, className, targetTime = null) {
     const statDiv = document.createElement('div');
     statDiv.className = `stat-item ${className}`;
+    
+    let targetTimeHtml = '';
+    if (targetTime) {
+        targetTimeHtml = `<div class="target-time">${targetTime}</div>`;
+    }
     
     statDiv.innerHTML = `
         <div class="stat-header">${title}</div>
@@ -331,6 +336,7 @@ function createStatElement(title, detail, percent, className) {
             <div class="progress-bar" style="width: ${percent}%"></div>
         </div>
         <div class="progress-text">(${percent.toFixed(1)}%)</div>
+        ${targetTimeHtml}
     `;
 
     return statDiv;
@@ -682,7 +688,8 @@ function updateStats() {
                     ? "今日已下班，请好好休息" 
                     : `还剩 ${totalHours} 小时 ${minutes} 分钟 ${seconds} 秒`,
                 percent: offWorkProgress,
-                className: "off-work"
+                className: "off-work",
+                targetTime: "下班时间: 17:30"
             },
             {
                 title: "距离下一个发薪日",
@@ -752,7 +759,13 @@ function updateStats() {
 
         // 创建并添加所有统计项
         stats.forEach(stat => {
-            const element = createStatElement(stat.title, stat.detail, stat.percent, stat.className);
+            const element = createStatElement(
+                stat.title,
+                stat.detail,
+                stat.percent,
+                stat.className,
+                stat.targetTime
+            );
             statsContainer.appendChild(element);
         });
     } else {
