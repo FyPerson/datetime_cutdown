@@ -648,16 +648,18 @@ function updateStats() {
                 title: `${nextSpring.year}年春节倒计时`,
                 detail: `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟 ${springSeconds} 秒`,
                 percent: springProgress,
-                className: "spring-festival"
+                className: "spring-festival",
+                targetTime: `春节: ${nextSpring.date.getMonth() + 1}月${nextSpring.date.getDate()}日`
             },
             {
                 title: `${nextValentine.getFullYear()}年情人节倒计时`,
                 detail: `还剩 ${valentineDays} 天 ${valentineHours} 小时 ${valentineMinutes} 分钟 ${valentineSeconds} 秒`,
                 percent: valentineProgress,
-                className: "valentines-day"
+                className: "valentines-day",
+                targetTime: `情人节: ${nextValentine.getMonth() + 1}月${nextValentine.getDate()}日`
             },
             {
-                title: `${nextQingming.getFullYear()}年清明节倒计时`,
+                title: `${nextQingming.getFullYear()}年清明倒计时`,
                 detail: `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`,
                 percent: qingmingProgress,
                 className: "qingming-festival",
@@ -667,19 +669,22 @@ function updateStats() {
                 title: `${nextLabor.getFullYear()}年劳动节倒计时`,
                 detail: `还剩 ${laborDays} 天 ${laborHours} 小时 ${laborMinutes} 分钟 ${laborSeconds} 秒`,
                 percent: laborProgress,
-                className: "labor-day"
+                className: "labor-day",
+                targetTime: `劳动节: ${nextLabor.getMonth() + 1}月${nextLabor.getDate()}日`
             },
             {
                 title: `${nextNationalDay.getFullYear()}年国庆节倒计时`,
                 detail: `还剩 ${nationalDays}天 ${nationalHours}时 ${nationalMinutes}分 ${nationalSeconds}秒`,
                 percent: nationalDayProgress,
-                className: "national-day"
+                className: "national-day",
+                targetTime: `国庆节: ${nextNationalDay.getMonth() + 1}月${nextNationalDay.getDate()}日`
             },
             {
                 title: "2025年儿童节倒计时",
                 detail: `还剩 ${childrenDays}天 ${childrenHours}小时 ${childrenMinutes}分钟 ${childrenSeconds}秒`,
                 percent: childrenProgress,
-                className: "children-day"
+                className: "children-day",
+                targetTime: `儿童节: ${childrenDay.getMonth() + 1}月${childrenDay.getDate()}日`
             },
             {
                 title: "距离下班",
@@ -696,31 +701,36 @@ function updateStats() {
                 title: "距离下一个发薪日",
                 detail: salaryDetail,
                 percent: salaryProgress,
-                className: "salary"
+                className: "salary",
+                targetTime: `发薪日: ${salaryDay}日`
             },
             {
                 title: `${februaryLastDayInfo.year}年2月${februaryLastDayInfo.isLeapYear ? '29' : '28'}日倒计时`,
                 detail: `还剩 ${febDays}天${febHours}时${febMinutes}分${febSeconds}秒`,
                 percent: februaryLastDayProgress,
-                className: "february-last-day"
+                className: "february-last-day",
+                targetTime: `2月${februaryLastDayInfo.isLeapYear ? '29' : '28'}日`
             },
             {
                 title: `${lunarFebruaryInfo.solarYear}年农历2月${lunarFebruaryInfo.targetDay}日倒计时`,
                 detail: `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`,
                 percent: lunarFebruaryProgress,
-                className: "lunar-february-last-day"
+                className: "lunar-february-last-day",
+                targetTime: `农历2月${lunarFebruaryInfo.targetDay}日`
             },
             {
                 title: `${midAutumnDay.getFullYear()}年中秋节倒计时`,
                 detail: `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`,
                 percent: midAutumnProgress,
-                className: "mid-autumn"
+                className: "mid-autumn",
+                targetTime: `中秋节: ${midAutumnDay.getMonth() + 1}月${midAutumnDay.getDate()}日`
             },
             {
                 title: `${dragonBoatDay.getFullYear()}年端午节倒计时`,
                 detail: `还剩 ${dragonBoatDays}天 ${dragonBoatHours}时 ${dragonBoatMinutes}分 ${dragonBoatSeconds}秒`,
                 percent: dragonBoatProgress,
-                className: "dragon-boat-festival"
+                className: "dragon-boat-festival",
+                targetTime: `端午节: ${dragonBoatDay.getMonth() + 1}月${dragonBoatDay.getDate()}日`
             }
         ];
 
