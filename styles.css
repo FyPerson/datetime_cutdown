@@ -130,6 +130,10 @@ h1 {
     text-align: center;
     margin: var(--spacing-sm) 0;
     font-size: var(--font-size-lg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
 }
 
 /* 精确倒计时样式 */
@@ -138,17 +142,20 @@ h1 {
     margin: var(--spacing-md) 0;
     font-size: var(--font-size-xxl);
     color: var(--text-color);
+    white-space: nowrap;
 }
 
 .countdown-label {
-    display: inline;
+    display: inline-block;
     margin-right: var(--spacing-sm);
+    white-space: nowrap;
 }
 
 .precise-countdown {
-    display: inline;
+    display: inline-block;
     font-family: var(--font-family-mono);
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .countdown-digits {
@@ -401,13 +408,23 @@ h1 {
 
 /* 公历和农历日期显示的样式 */
 #solar-date {
-    font-size: 2.0rem;  /* 较大字体 */
-    margin-bottom: 0.5rem;  /* 添加一些底部间距 */
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
 #lunar-date {
-    font-size: 1.0rem;  /* 稍小的字体 */
-    opacity: 0.9;  /* 略微降低不透明度，让它看起来次要一些 */
+    font-size: 1.0rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* 为图标添加样式 */
+.current-time i {
+    margin-right: var(--spacing-xs);
 }
 
 /* 添加动画关键帧 */
@@ -482,11 +499,13 @@ h1 {
 
     .precise-countdown-container {
         font-size: var(--font-size-xl);
+        white-space: nowrap;
     }
 
     .countdown-label {
-        display: block;
-        margin-bottom: var(--spacing-sm);
+        display: inline-block;
+        margin-right: var(--spacing-sm);
+        white-space: nowrap;
     }
 
     #stats-container {
