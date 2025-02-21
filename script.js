@@ -814,10 +814,16 @@ function updateStats() {
                 progressBar.style.width = `${valentineProgress}%`;
                 progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('qingming-festival')) {
-                const nextQingming = getNextFestival(4, 4);
-                const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
+                const nextQingming = Lunar.fromDate(now).getNextJieQi(true);
+                const qingmingSolar = nextQingming.getSolar();
+                const qingmingDate = new Date(
+                    qingmingSolar.getYear(), 
+                    qingmingSolar.getMonth() - 1, 
+                    qingmingSolar.getDay()
+                );
+                const secondsToQingming = TimeUtil.getSecondsTo(qingmingDate);
                 const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
-                const qingmingProgress = ProgressUtil.calculateFestival(nextQingming);
+                const qingmingProgress = ProgressUtil.calculateFestival(qingmingDate);
 
                 detail.textContent = `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`;
                 progressBar.style.width = `${qingmingProgress}%`;
@@ -1182,16 +1188,17 @@ function updateStats() {
             progressBar.style.width = `${valentineProgress}%`;
             progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('qingming-festival')) {
-            const nextQingming = getNextFestival(4, 4);
-            const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
+            const nextQingming = Lunar.fromDate(now).getNextJieQi(true);
+            const qingmingSolar = nextQingming.getSolar();
+            const qingmingDate = new Date(
+                qingmingSolar.getYear(), 
+                qingmingSolar.getMonth() - 1, 
+                qingmingSolar.getDay()
+            );
+            const secondsToQingming = TimeUtil.getSecondsTo(qingmingDate);
             const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
-            const qingmingProgress = ProgressUtil.calculateFestival(nextQingming);
+            const qingmingProgress = ProgressUtil.calculateFestival(qingmingDate);
 
-            // 更新里程碑和特效
-            ProgressEffects.updateMilestones(progressContainer, qingmingProgress);
-            ProgressEffects.updateProgressText(progressText, qingmingProgress);
-
-            const detail = card.querySelector('.stat-detail');
             detail.textContent = `还剩 ${qingmingDays} 天 ${qingmingHours} 小时 ${qingmingMinutes} 分钟 ${qingmingSeconds} 秒`;
             progressBar.style.width = `${qingmingProgress}%`;
             progressText.textContent = `(${qingmingProgress.toFixed(1)}%)`;
