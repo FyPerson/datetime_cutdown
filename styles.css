@@ -366,8 +366,8 @@ h1 {
 }
 
 .stat-item.month {
-    --stat-color: #f1ca17;
-    background-color: rgba(241, 202, 23, 0.1);
+    --stat-color: #9370DB;  /* 改为紫色系 */
+    background-color: rgba(147, 112, 219, 0.1);
 }
 
 .stat-item.year {
@@ -894,4 +894,55 @@ main.hidden {
 /* 添加悬停效果 */
 .stat-item:hover .target-time {
     opacity: 1;  /* 悬停时完全不透明 */
+}
+
+.solar-date, .lunar-date {
+    display: block;
+    margin: 5px 0;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.solar-date {
+    font-size: 1.4em;  /* 阳历稍大一些 */
+    margin-bottom: 8px;
+}
+
+.lunar-date {
+    font-size: 1.2em;  /* 阴历稍小一些 */
+    color: #888;  /* 阴历颜色淡一些 */
+}
+
+#current-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.solar-date, .lunar-date {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.solar-date {
+    font-size: 1.2em;
+    margin-bottom: 4px;
+}
+
+.lunar-date {
+    font-size: 1.1em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#solar-date-text, #lunar-date-text {
+    display: inline-block;
+    text-align: center;
 }

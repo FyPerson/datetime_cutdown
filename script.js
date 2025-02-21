@@ -285,39 +285,70 @@ function formatDateTime(date) {
 }
 
 function updateDateTime() {
-    const now = new Date();
-    const solarDate = document.getElementById('solar-date');
-    const lunarDate = document.getElementById('lunar-date');
-    
-    // 格式化时分秒
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const timeStr = `${hours}:${minutes}:${seconds}`;
-    
-    // 公历日期显示
-    const dateStr = now.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long'
-    });
-    solarDate.textContent = `${dateStr} ${timeStr}`;
+    try {
+        const now = new Date();
+        let solarDateText = document.getElementById('solar-date-text');
+        let lunarDateText = document.getElementById('lunar-date-text');
+        
+        // 如果元素不存在，创建它们
+        if (!solarDateText) {
+            const solarDate = document.getElementById('solar-date');
+            if (solarDate) {
+                solarDateText = document.createElement('span');
+                solarDateText.id = 'solar-date-text';
+                solarDate.appendChild(solarDateText);
+            }
+        }
+        
+        if (!lunarDateText) {
+            const lunarDate = document.getElementById('lunar-date');
+            if (lunarDate) {
+                lunarDateText = document.createElement('span');
+                lunarDateText.id = 'lunar-date-text';
+                lunarDate.appendChild(lunarDateText);
+            }
+        }
+        
+        if (!solarDateText || !lunarDateText) {
+            console.error('找不到日期显示元素:', {
+                solarDateText: !!solarDateText,
+                lunarDateText: !!lunarDateText
+            });
+            return;
+        }
 
-    // 获取农历信息
-    const lunar = Lunar.fromDate(now);
-    const lunarYear = lunar.getYearInChinese();
-    const monthName = lunar.getMonthInChinese() + '月';
-    const dayName = lunar.getDayInChinese();
-    const term = lunar.getJieQi(); // 获取节气
-    const animal = lunar.getYearShengXiao(); // 获取生肖
-    const ganZhiYear = lunar.getYearInGanZhi(); // 获取年份天干地支
-    const ganZhiMonth = lunar.getMonthInGanZhi(); // 获取月份天干地支
-    const ganZhiDay = lunar.getDayInGanZhi(); // 获取日期天干地支
-    
-    // 组合农历日期字符串
-    const lunarText = `农历${lunarYear}年 ${monthName}${dayName} [${term}] ${ganZhiYear}年 ${ganZhiMonth}月 ${ganZhiDay}日 [属${animal}]`;
-    lunarDate.textContent = lunarText;
+        // 格式化时分秒
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeStr = `${hours}:${minutes}:${seconds}`;
+        
+        // 公历日期显示 - 简化格式
+        const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日星期${['日', '一', '二', '三', '四', '五', '六'][now.getDay()]} ${hours}:${minutes}:${seconds}`;
+        solarDateText.textContent = dateStr;
+
+        // 农历日期显示 - 简化格式
+        const lunar = Lunar.fromDate(now);
+        const lunarYear = lunar.getYearInChinese();
+        const monthName = lunar.getMonthInChinese();
+        const dayName = lunar.getDayInChinese();
+        const term = lunar.getJieQi(); // 获取节气
+        const animal = lunar.getYearShengXiao(); // 获取生肖
+        const ganZhiYear = lunar.getYearInGanZhi(); // 获取年份天干地支
+        const ganZhiMonth = lunar.getMonthInGanZhi(); // 获取月份天干地支
+        const ganZhiDay = lunar.getDayInGanZhi(); // 获取日期天干地支
+        
+        // 组合农历日期字符串，使用更简洁的格式
+        const lunarText = `农历${lunarYear}年 正月${dayName} ${ganZhiYear}年 ${ganZhiMonth}月 ${ganZhiDay}日 [属${animal}]`;
+        lunarDateText.textContent = lunarText;
+
+        console.log('更新日期成功:', {
+            solar: solarDateText.textContent,
+            lunar: lunarDateText.textContent
+        });
+    } catch (error) {
+        console.error('更新日期时出错:', error);
+    }
 }
 
 function createStatElement(title, detail, percent, className, targetTime = null) {
@@ -1692,3 +1723,12 @@ function updateCountdown(targetDate, elementId) {
 function formatTimeNumber(num) {
     return Math.floor(num); // 确保是整数
 }
+
+// 确保在文档加载完成后开始更新时间
+document.addEventListener('DOMContentLoaded', () => {
+    // 立即执行一次
+    updateDateTime();
+    
+    // 每秒更新一次
+    setInterval(updateDateTime, 1000);
+});
