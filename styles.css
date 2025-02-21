@@ -324,8 +324,8 @@ h1 {
 }
 
 .stat-item.mid-autumn {
-    --stat-color: #DEB887;
-    background-color: rgba(222, 184, 135, 0.1);
+    --stat-color: #F4C430;  /* 月亮金黄色 */
+    background-color: rgba(244, 196, 48, 0.1);
 }
 
 .stat-item.national-day {
@@ -391,6 +391,12 @@ h1 {
 .stat-item.lunar-february-last-day {
     --stat-color: #9b4dca;
     background-color: rgba(155, 77, 202, 0.1);
+}
+
+/* 端午节卡片样式 */
+.stat-item.dragon-boat-festival {
+    --stat-color: #00B26F;  /* 粽叶绿色 */
+    background-color: rgba(0, 178, 111, 0.1);
 }
 
 /* 公历和农历日期显示的样式 */

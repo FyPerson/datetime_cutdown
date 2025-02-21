@@ -604,6 +604,14 @@ function updateStats() {
         const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
         const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
 
+        // 在 updateStats 函数中的 stats 数组里添加端午节卡片配置
+        // 找到创建统计项的位置，在 stats 数组中添加：
+
+        const dragonBoatDay = getNextLunarFestival(5, 5); // 农历五月初五是端午节
+        const secondsToDragonBoat = TimeUtil.getSecondsTo(dragonBoatDay);
+        const [dragonBoatDays, dragonBoatHours, dragonBoatMinutes, dragonBoatSeconds] = TimeUtil.secondsToDHMS(secondsToDragonBoat);
+        const dragonBoatProgress = ProgressUtil.calculateFestival(dragonBoatDay);
+
         // 创建统计项
         const stats = [
             {
@@ -699,6 +707,12 @@ function updateStats() {
                 detail: `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`,
                 percent: midAutumnProgress,
                 className: "mid-autumn"
+            },
+            {
+                title: `${dragonBoatDay.getFullYear()}年端午节倒计时`,
+                detail: `还剩 ${dragonBoatDays}天 ${dragonBoatHours}时 ${dragonBoatMinutes}分 ${dragonBoatSeconds}秒`,
+                percent: dragonBoatProgress,
+                className: "dragon-boat-festival"
             }
         ];
 
@@ -870,6 +884,11 @@ function updateStats() {
                     salaryProgress = (passedDays / totalDays) * 100;
                 }
 
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, salaryProgress);
+                ProgressEffects.updateProgressText(progressText, salaryProgress);
+
+                const detail = card.querySelector('.stat-detail');
                 detail.textContent = salaryDetail;
                 progressBar.style.width = `${salaryProgress}%`;
                 progressText.textContent = `(${salaryProgress.toFixed(1)}%)`;
@@ -899,6 +918,11 @@ function updateStats() {
                 const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
                 const februaryLastDayProgress = ProgressUtil.calculateFestival(februaryLastDayInfo.date);
 
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, februaryLastDayProgress);
+                ProgressEffects.updateProgressText(progressText, februaryLastDayProgress);
+
+                const detail = card.querySelector('.stat-detail');
                 detail.textContent = `还剩 ${febDays}天${febHours}时${febMinutes}分${febSeconds}秒`;
                 progressBar.style.width = `${februaryLastDayProgress}%`;
                 progressText.textContent = `(${februaryLastDayProgress.toFixed(1)}%)`;
@@ -1007,6 +1031,11 @@ function updateStats() {
                 const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
                 const lunarFebruaryProgress = ProgressUtil.calculateFestival(lunarFebruaryInfo.date);
 
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, lunarFebruaryProgress);
+                ProgressEffects.updateProgressText(progressText, lunarFebruaryProgress);
+
+                const detail = card.querySelector('.stat-detail');
                 detail.textContent = `还剩 ${lunarFebDays}天${lunarFebHours}时${lunarFebMinutes}分${lunarFebSeconds}秒`;
                 progressBar.style.width = `${lunarFebruaryProgress}%`;
                 progressText.textContent = `(${lunarFebruaryProgress.toFixed(1)}%)`;
@@ -1016,9 +1045,28 @@ function updateStats() {
                 const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
                 const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
 
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, midAutumnProgress);
+                ProgressEffects.updateProgressText(progressText, midAutumnProgress);
+
+                const detail = card.querySelector('.stat-detail');
                 detail.textContent = `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`;
                 progressBar.style.width = `${midAutumnProgress}%`;
                 progressText.textContent = `(${midAutumnProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('dragon-boat-festival')) {
+                const dragonBoatDay = getNextLunarFestival(5, 5);
+                const secondsToDragonBoat = TimeUtil.getSecondsTo(dragonBoatDay);
+                const [dragonBoatDays, dragonBoatHours, dragonBoatMinutes, dragonBoatSeconds] = TimeUtil.secondsToDHMS(secondsToDragonBoat);
+                const dragonBoatProgress = ProgressUtil.calculateFestival(dragonBoatDay);
+
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, dragonBoatProgress);
+                ProgressEffects.updateProgressText(progressText, dragonBoatProgress);
+
+                const detail = card.querySelector('.stat-detail');
+                detail.textContent = `还剩 ${dragonBoatDays}天 ${dragonBoatHours}时 ${dragonBoatMinutes}分 ${dragonBoatSeconds}秒`;
+                progressBar.style.width = `${dragonBoatProgress}%`;
+                progressText.textContent = `(${dragonBoatProgress.toFixed(1)}%)`;
             }
         });
     }
@@ -1398,6 +1446,20 @@ function updateStats() {
             detail.textContent = `还剩 ${midAutumnDays}天 ${midAutumnHours}时 ${midAutumnMinutes}分 ${midAutumnSeconds}秒`;
             progressBar.style.width = `${midAutumnProgress}%`;
             progressText.textContent = `(${midAutumnProgress.toFixed(1)}%)`;
+        } else if (card.classList.contains('dragon-boat-festival')) {
+            const dragonBoatDay = getNextLunarFestival(5, 5);
+            const secondsToDragonBoat = TimeUtil.getSecondsTo(dragonBoatDay);
+            const [dragonBoatDays, dragonBoatHours, dragonBoatMinutes, dragonBoatSeconds] = TimeUtil.secondsToDHMS(secondsToDragonBoat);
+            const dragonBoatProgress = ProgressUtil.calculateFestival(dragonBoatDay);
+
+            // 更新里程碑和特效
+            ProgressEffects.updateMilestones(progressContainer, dragonBoatProgress);
+            ProgressEffects.updateProgressText(progressText, dragonBoatProgress);
+
+            const detail = card.querySelector('.stat-detail');
+            detail.textContent = `还剩 ${dragonBoatDays}天 ${dragonBoatHours}时 ${dragonBoatMinutes}分 ${dragonBoatSeconds}秒`;
+            progressBar.style.width = `${dragonBoatProgress}%`;
+            progressText.textContent = `(${dragonBoatProgress.toFixed(1)}%)`;
         }
     });
 
