@@ -606,9 +606,13 @@ function updateStats() {
         const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
 
         // 获取各个节日的下一个日期
+        const nextNewYear = getNextFestival(1, 1);     // 元旦
         const nextValentine = getNextFestival(2, 14);  // 情人节
         const nextLabor = getNextFestival(5, 1);       // 劳动节
         const nextNationalDay = getNextFestival(10, 1); // 国庆节
+        
+        // 元宵节计算（农历正月十五）
+        const nextLanternFestival = getNextLunarFestival(1, 15);
         
         // 清明节计算 - 使用农历节气计算（安全方法）
         const lunarNow = Lunar.fromDate(now);
@@ -645,22 +649,28 @@ function updateStats() {
         }
 
         // 计算各个节日的倒计时
+        const secondsToNewYear = TimeUtil.getSecondsTo(nextNewYear);
         const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
         const secondsToQingming = TimeUtil.getSecondsTo(nextQingming);
         const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
         const secondsToNationalDay = TimeUtil.getSecondsTo(nextNationalDay);
+        const secondsToLanternFestival = TimeUtil.getSecondsTo(nextLanternFestival);
 
         // 转换为天时分秒
+        const [newYearDays, newYearHours, newYearMinutes, newYearSeconds] = TimeUtil.secondsToDHMS(secondsToNewYear);
         const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
         const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
         const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
         const [nationalDays, nationalHours, nationalMinutes, nationalSeconds] = TimeUtil.secondsToDHMS(secondsToNationalDay);
+        const [lanternDays, lanternHours, lanternMinutes, lanternSeconds] = TimeUtil.secondsToDHMS(secondsToLanternFestival);
 
         // 计算进度
+        const newYearProgress = ProgressUtil.calculateFestival(nextNewYear);
         const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
         const qingmingProgress = ProgressUtil.calculateFestival(nextQingming);
         const laborProgress = ProgressUtil.calculateFestival(nextLabor);
         const nationalDayProgress = ProgressUtil.calculateFestival(nextNationalDay);
+        const lanternProgress = ProgressUtil.calculateFestival(nextLanternFestival);
 
         // 计算下班倒计时
         const secondsToOffWork = calculateTimeToOffWork();
@@ -878,11 +888,25 @@ function updateStats() {
                 isDynamic: true
             },
             {
+                title: `${nextNewYear.getFullYear()}年元旦倒计时`,
+                detail: `还剩 ${newYearDays} 天 ${newYearHours} 小时 ${newYearMinutes} 分钟`,
+                percent: newYearProgress,
+                className: "new-year",
+                targetTime: `元旦: ${nextNewYear.getMonth() + 1}月${nextNewYear.getDate()}日`
+            },
+            {
                 title: `${nextSpring.year}年春节倒计时`,
                 detail: `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟`,
                 percent: springProgress,
                 className: "spring-festival",
                 targetTime: `春节: ${nextSpring.date.getMonth() + 1}月${nextSpring.date.getDate()}日`
+            },
+            {
+                title: `${nextLanternFestival.getFullYear()}年元宵节倒计时`,
+                detail: `还剩 ${lanternDays} 天 ${lanternHours} 小时 ${lanternMinutes} 分钟`,
+                percent: lanternProgress,
+                className: "lantern-festival",
+                targetTime: `元宵节: ${nextLanternFestival.getMonth() + 1}月${nextLanternFestival.getDate()}日`
             },
             {
                 title: `${nextValentine.getFullYear()}年情人节倒计时`,
@@ -967,42 +991,87 @@ function updateStats() {
             }
         ];
 
-        // 定义进度类型的卡片
-        const progressTypes = ['today', 'week', 'month', 'year'];
-
-        // 按照剩余时间排序卡片
-        stats.sort((a, b) => {
-            // 首先保证进度类型的卡片在最前
-            if (progressTypes.some(type => a.className.includes(type))) return -1;
-            if (progressTypes.some(type => b.className.includes(type))) return 1;
-
-            // 提取剩余时间并转换为秒
-            const extractRemainingSeconds = (detail) => {
-                const dayMatch = detail.match(/还剩\s*(\d+)\s*天/);
-                const hourMatch = detail.match(/(\d+)\s*小时/);
-                const minuteMatch = detail.match(/(\d+)\s*分钟/);
-                const secondMatch = detail.match(/(\d+)\s*秒/);
-
-                let totalSeconds = 0;
-                if (dayMatch) totalSeconds += parseInt(dayMatch[1]) * 24 * 3600;
-                if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600;
-                if (minuteMatch) totalSeconds += parseInt(minuteMatch[1]) * 60;
-                if (secondMatch) totalSeconds += parseInt(secondMatch[1]);
-
-                return totalSeconds;
+        // 安全的排序方法：创建新的排序数组
+        const progressCards = stats.filter(stat => ['today', 'week', 'month', 'year'].includes(stat.className));
+        const countdownCards = stats.filter(stat => !['today', 'week', 'month', 'year'].includes(stat.className));
+        
+        // 为倒计时卡片创建带排序信息的副本
+        const countdownCardsWithSort = countdownCards.map(card => {
+            let secondsToTarget = Infinity; // 默认值
+            
+            try {
+                switch (card.className) {
+                    case 'new-year':
+                        secondsToTarget = secondsToNewYear || Infinity;
+                        break;
+                    case 'spring-festival':
+                        secondsToTarget = TimeUtil.getSecondsTo(nextSpring.date) || Infinity;
+                        break;
+                    case 'lantern-festival':
+                        secondsToTarget = secondsToLanternFestival || Infinity;
+                        break;
+                    case 'valentines-day':
+                        secondsToTarget = secondsToValentine || Infinity;
+                        break;
+                    case 'qingming-festival':
+                        secondsToTarget = secondsToQingming || Infinity;
+                        break;
+                    case 'labor-day':
+                        secondsToTarget = secondsToLabor || Infinity;
+                        break;
+                    case 'national-day':
+                        secondsToTarget = secondsToNationalDay || Infinity;
+                        break;
+                    case 'children-day':
+                        secondsToTarget = TimeUtil.getSecondsTo(childrenDay) || Infinity;
+                        break;
+                    case 'off-work':
+                        secondsToTarget = (secondsToOffWork === -1) ? Infinity : (secondsToOffWork || Infinity);
+                        break;
+                    case 'salary':
+                        secondsToTarget = TimeUtil.getSecondsTo(nextSalaryDate) || Infinity;
+                        break;
+                    case 'february-last-day':
+                        secondsToTarget = TimeUtil.getSecondsTo(februaryLastDayInfo.date) || Infinity;
+                        break;
+                    case 'lunar-february-last-day':
+                        secondsToTarget = TimeUtil.getSecondsTo(lunarFebruaryInfo.date) || Infinity;
+                        break;
+                    case 'mid-autumn':
+                        secondsToTarget = TimeUtil.getSecondsTo(midAutumnDay) || Infinity;
+                        break;
+                    case 'dragon-boat-festival':
+                        secondsToTarget = TimeUtil.getSecondsTo(dragonBoatDay) || Infinity;
+                        break;
+                }
+            } catch (error) {
+                console.warn(`计算 ${card.className} 剩余时间时出错:`, error);
+                secondsToTarget = Infinity;
+            }
+            
+            return {
+                ...card, // 复制原对象的所有属性
+                secondsToTarget: secondsToTarget
             };
-
-            const remainingSecondsA = extractRemainingSeconds(a.detail);
-            const remainingSecondsB = extractRemainingSeconds(b.detail);
-
-            return remainingSecondsA - remainingSecondsB;
         });
+        
+        // 按剩余时间排序倒计时卡片
+        countdownCardsWithSort.sort((a, b) => a.secondsToTarget - b.secondsToTarget);
+        
+        // 移除排序信息，恢复原始对象结构
+        const sortedCountdownCards = countdownCardsWithSort.map(card => {
+            const { secondsToTarget, ...originalCard } = card;
+            return originalCard;
+        });
+        
+        // 重新组合：进度卡片 + 排序后的倒计时卡片
+        const sortedStats = [...progressCards, ...sortedCountdownCards];
 
         // 清空容器
         statsContainer.innerHTML = '';
 
         // 创建并添加所有统计项
-        stats.forEach(stat => {
+        sortedStats.forEach(stat => {
             const element = createStatElement(
                 stat.title,
                 stat.detail,
@@ -1061,6 +1130,19 @@ function updateStats() {
                 detail.textContent = `已过 ${yearDays} 天 ${yearHours} 小时 ${yearMinutes} 分钟`;
                 progressBar.style.width = `${yearPercent}%`;
                 progressText.textContent = `(${yearPercent.toFixed(1)}%)`;
+            } else if (card.classList.contains('new-year')) {
+                const nextNewYear = getNextFestival(1, 1);
+                const secondsToNewYear = TimeUtil.getSecondsTo(nextNewYear);
+                const [newYearDays, newYearHours, newYearMinutes, newYearSeconds] = TimeUtil.secondsToDHMS(secondsToNewYear);
+                const newYearProgress = ProgressUtil.calculateFestival(nextNewYear);
+
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, newYearProgress);
+                ProgressEffects.updateProgressText(progressText, newYearProgress);
+
+                detail.textContent = `还剩 ${newYearDays} 天 ${newYearHours} 小时 ${newYearMinutes} 分钟`;
+                progressBar.style.width = `${newYearProgress}%`;
+                progressText.textContent = `(${newYearProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('spring-festival')) {
                 const { currentSpring, nextSpring } = getSpringFestivalDates();
                 const secondsToSpring = TimeUtil.getSecondsTo(nextSpring.date);
@@ -1070,6 +1152,19 @@ function updateStats() {
                 detail.textContent = `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟`;
                 progressBar.style.width = `${springProgress}%`;
                 progressText.textContent = `(${springProgress.toFixed(1)}%)`;
+            } else if (card.classList.contains('lantern-festival')) {
+                const nextLanternFestival = getNextLunarFestival(1, 15);
+                const secondsToLanternFestival = TimeUtil.getSecondsTo(nextLanternFestival);
+                const [lanternDays, lanternHours, lanternMinutes, lanternSeconds] = TimeUtil.secondsToDHMS(secondsToLanternFestival);
+                const lanternProgress = ProgressUtil.calculateFestival(nextLanternFestival);
+
+                // 更新里程碑和特效
+                ProgressEffects.updateMilestones(progressContainer, lanternProgress);
+                ProgressEffects.updateProgressText(progressText, lanternProgress);
+
+                detail.textContent = `还剩 ${lanternDays} 天 ${lanternHours} 小时 ${lanternMinutes} 分钟`;
+                progressBar.style.width = `${lanternProgress}%`;
+                progressText.textContent = `(${lanternProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('valentines-day')) {
                 const nextValentine = getNextFestival(2, 14);
                 const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
@@ -1452,6 +1547,15 @@ function updateStats() {
             detail.textContent = `已过 ${yearDays} 天 ${yearHours} 小时 ${yearMinutes} 分钟`;
             progressBar.style.width = `${yearPercent}%`;
             progressText.textContent = `(${yearPercent.toFixed(1)}%)`;
+        } else if (card.classList.contains('new-year')) {
+            const nextNewYear = getNextFestival(1, 1);
+            const secondsToNewYear = TimeUtil.getSecondsTo(nextNewYear);
+            const [newYearDays, newYearHours, newYearMinutes, newYearSeconds] = TimeUtil.secondsToDHMS(secondsToNewYear);
+            const newYearProgress = ProgressUtil.calculateFestival(nextNewYear);
+
+            detail.textContent = `还剩 ${newYearDays} 天 ${newYearHours} 小时 ${newYearMinutes} 分钟`;
+            progressBar.style.width = `${newYearProgress}%`;
+            progressText.textContent = `(${newYearProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('spring-festival')) {
             const { currentSpring, nextSpring } = getSpringFestivalDates();
             const secondsToSpring = TimeUtil.getSecondsTo(nextSpring.date);
@@ -1462,6 +1566,15 @@ function updateStats() {
             detail.textContent = `还剩 ${springDays} 天 ${springHours} 小时 ${springMinutes} 分钟`;
             progressBar.style.width = `${springProgress}%`;
             progressText.textContent = `(${springProgress.toFixed(1)}%)`;
+        } else if (card.classList.contains('lantern-festival')) {
+            const nextLanternFestival = getNextLunarFestival(1, 15);
+            const secondsToLanternFestival = TimeUtil.getSecondsTo(nextLanternFestival);
+            const [lanternDays, lanternHours, lanternMinutes, lanternSeconds] = TimeUtil.secondsToDHMS(secondsToLanternFestival);
+            const lanternProgress = ProgressUtil.calculateFestival(nextLanternFestival);
+
+            detail.textContent = `还剩 ${lanternDays} 天 ${lanternHours} 小时 ${lanternMinutes} 分钟`;
+            progressBar.style.width = `${lanternProgress}%`;
+            progressText.textContent = `(${lanternProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('valentines-day')) {
             const nextValentine = getNextFestival(2, 14);
             const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
