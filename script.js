@@ -607,9 +607,42 @@ function updateStats() {
 
         // 获取各个节日的下一个日期
         const nextValentine = getNextFestival(2, 14);  // 情人节
-        const nextQingming = getNextFestival(4, 4);    // 清明节
         const nextLabor = getNextFestival(5, 1);       // 劳动节
         const nextNationalDay = getNextFestival(10, 1); // 国庆节
+        
+        // 清明节计算 - 使用农历节气计算（安全方法）
+        const lunarNow = Lunar.fromDate(now);
+        let nextQingming;
+        
+        try {
+            // 尝试使用I18n.getMessage获取正确的键名
+            const qingmingKey = I18n.getMessage('jq.qingMing');
+            const qingmingSolar = lunarNow._getJieQiSolar(qingmingKey);
+            nextQingming = new Date(
+                qingmingSolar.getYear(), 
+                qingmingSolar.getMonth() - 1, 
+                qingmingSolar.getDay()
+            );
+            
+            // 如果今年的清明节已经过了，获取明年的清明节
+            if (nextQingming < now) {
+                const nextYearLunar = Lunar.fromDate(new Date(now.getFullYear() + 1, 0, 1));
+                const nextYearQingmingSolar = nextYearLunar._getJieQiSolar(qingmingKey);
+                nextQingming = new Date(
+                    nextYearQingmingSolar.getYear(), 
+                    nextYearQingmingSolar.getMonth() - 1, 
+                    nextYearQingmingSolar.getDay()
+                );
+            }
+        } catch (error) {
+            // 如果节气计算失败，回退到固定日期
+            console.warn('清明节节气计算失败，使用固定日期:', error);
+            const currentYear = now.getFullYear();
+            nextQingming = new Date(currentYear, 3, 5); // 4月5日
+            if (nextQingming < now) {
+                nextQingming = new Date(currentYear + 1, 3, 5);
+            }
+        }
 
         // 计算各个节日的倒计时
         const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
@@ -1047,13 +1080,39 @@ function updateStats() {
                 progressBar.style.width = `${valentineProgress}%`;
                 progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('qingming-festival')) {
-                const nextQingming = Lunar.fromDate(now).getNextJieQi(true);
-                const qingmingSolar = nextQingming.getSolar();
-                const qingmingDate = new Date(
-                    qingmingSolar.getYear(), 
-                    qingmingSolar.getMonth() - 1, 
-                    qingmingSolar.getDay()
-                );
+                // 清明节计算 - 使用农历节气计算（安全方法）
+                const lunarNow = Lunar.fromDate(now);
+                let qingmingDate;
+                
+                try {
+                    // 尝试使用I18n.getMessage获取正确的键名
+                    const qingmingKey = I18n.getMessage('jq.qingMing');
+                    const qingmingSolar = lunarNow._getJieQiSolar(qingmingKey);
+                    qingmingDate = new Date(
+                        qingmingSolar.getYear(), 
+                        qingmingSolar.getMonth() - 1, 
+                        qingmingSolar.getDay()
+                    );
+                    
+                    // 如果今年的清明节已经过了，获取明年的清明节
+                    if (qingmingDate < now) {
+                        const nextYearLunar = Lunar.fromDate(new Date(now.getFullYear() + 1, 0, 1));
+                        const nextYearQingmingSolar = nextYearLunar._getJieQiSolar(qingmingKey);
+                        qingmingDate = new Date(
+                            nextYearQingmingSolar.getYear(), 
+                            nextYearQingmingSolar.getMonth() - 1, 
+                            nextYearQingmingSolar.getDay()
+                        );
+                    }
+                } catch (error) {
+                    // 如果节气计算失败，回退到固定日期
+                    console.warn('清明节节气计算失败，使用固定日期:', error);
+                    const currentYear = now.getFullYear();
+                    qingmingDate = new Date(currentYear, 3, 5); // 4月5日
+                    if (qingmingDate < now) {
+                        qingmingDate = new Date(currentYear + 1, 3, 5);
+                    }
+                }
                 const secondsToQingming = TimeUtil.getSecondsTo(qingmingDate);
                 const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
                 const qingmingProgress = ProgressUtil.calculateFestival(qingmingDate);
@@ -1414,13 +1473,39 @@ function updateStats() {
             progressBar.style.width = `${valentineProgress}%`;
             progressText.textContent = `(${valentineProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('qingming-festival')) {
-            const nextQingming = Lunar.fromDate(now).getNextJieQi(true);
-            const qingmingSolar = nextQingming.getSolar();
-            const qingmingDate = new Date(
-                qingmingSolar.getYear(), 
-                qingmingSolar.getMonth() - 1, 
-                qingmingSolar.getDay()
-            );
+            // 清明节计算 - 使用农历节气计算（安全方法）
+            const lunarNow = Lunar.fromDate(now);
+            let qingmingDate;
+            
+            try {
+                // 尝试使用I18n.getMessage获取正确的键名
+                const qingmingKey = I18n.getMessage('jq.qingMing');
+                const qingmingSolar = lunarNow._getJieQiSolar(qingmingKey);
+                qingmingDate = new Date(
+                    qingmingSolar.getYear(), 
+                    qingmingSolar.getMonth() - 1, 
+                    qingmingSolar.getDay()
+                );
+                
+                // 如果今年的清明节已经过了，获取明年的清明节
+                if (qingmingDate < now) {
+                    const nextYearLunar = Lunar.fromDate(new Date(now.getFullYear() + 1, 0, 1));
+                    const nextYearQingmingSolar = nextYearLunar._getJieQiSolar(qingmingKey);
+                    qingmingDate = new Date(
+                        nextYearQingmingSolar.getYear(), 
+                        nextYearQingmingSolar.getMonth() - 1, 
+                        nextYearQingmingSolar.getDay()
+                    );
+                }
+            } catch (error) {
+                // 如果节气计算失败，回退到固定日期
+                console.warn('清明节节气计算失败，使用固定日期:', error);
+                const currentYear = now.getFullYear();
+                qingmingDate = new Date(currentYear, 3, 5); // 4月5日
+                if (qingmingDate < now) {
+                    qingmingDate = new Date(currentYear + 1, 3, 5);
+                }
+            }
             const secondsToQingming = TimeUtil.getSecondsTo(qingmingDate);
             const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
             const qingmingProgress = ProgressUtil.calculateFestival(qingmingDate);
