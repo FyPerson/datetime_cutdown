@@ -1840,13 +1840,13 @@ const TimeFormatter = {
         
         switch (format) {
             case 'compact':
-                return `还剩 ${d}天${h}时${m}分${s}秒`;
+                return `还剩 ${d} 天 ${h} 小时 ${m} 分钟 ${s} 秒`;
             case 'detailed':
                 return `还剩 ${d} 天 ${h} 小时 ${m} 分钟 ${s} 秒`;
             case 'short':
-                return `${d}天${h}时${m}分${s}秒`;
+                return `${d} 天 ${h} 小时 ${m} 分钟 ${s} 秒`;
             default:
-                return `还剩 ${d}天 ${h}小时 ${m}分钟 ${s}秒`;
+                return `还剩 ${d} 天 ${h} 小时 ${m} 分钟 ${s} 秒`;
         }
     }
 };
