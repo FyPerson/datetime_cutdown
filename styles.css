@@ -1,0 +1,948 @@
+/* 全局 CSS 变量 */
+:root {
+    /* 基础变量 */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --border-radius-sm: 3px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
+    
+    /* 动画变量 */
+    --transition-speed: 0.3s;
+    --transition-timing: ease;
+    --transition-default: all var(--transition-speed) var(--transition-timing);
+    
+    /* 阴影变量 */
+    --shadow-sm: 0 2px 4px;
+    --shadow-md: 0 4px 8px;
+    
+    /* 字体变量 */
+    --font-family-base: 'Segoe UI', Arial, sans-serif;
+    --font-family-mono: 'Roboto Mono', monospace;
+    --font-size-xs: 0.6em;
+    --font-size-sm: 0.85em;
+    --font-size-base: 1em;
+    --font-size-lg: 1.1em;
+    --font-size-xl: 1.8em;
+    --font-size-xxl: 2em;
+}
+
+/* 亮色主题 */
+:root[data-theme="light"] {
+    --bg-color: #f5f5f5;
+    --text-color: #2c3e50;
+    --card-bg: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --gradient-start: #ffffff;
+    --gradient-end: #f0f0f0;
+}
+
+/* 暗色主题 */
+:root[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #ecf0f1;
+    --card-bg: #2d2d2d;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --gradient-start: #1a1a1a;
+    --gradient-end: #2d2d2d;
+}
+
+/* 重置样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: var(--transition-default);
+}
+
+/* 基础布局 */
+body {
+    font-family: var(--font-family-base);
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 主题切换按钮 */
+.theme-switch {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+}
+
+#theme-toggle {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius-lg);
+    cursor: pointer;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    box-shadow: var(--shadow-sm) var(--shadow-color);
+}
+
+#theme-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md) var(--shadow-color);
+}
+
+/* 主题图标显示控制 */
+:root[data-theme="light"] .light-icon,
+:root[data-theme="dark"] .dark-icon {
+    display: none;
+}
+
+:root[data-theme="light"] .dark-icon,
+:root[data-theme="dark"] .light-icon {
+    display: inline-block;
+}
+
+.theme-text {
+    font-size: var(--font-size-sm);
+}
+
+/* 图标动画 */
+#theme-toggle i {
+    transition: transform var(--transition-speed) var(--transition-timing);
+}
+
+#theme-toggle:hover i {
+    transform: rotate(360deg);
+}
+
+/* 标题样式 */
+h1 {
+    text-align: center;
+    margin: var(--spacing-sm) 0;
+    font-size: var(--font-size-xl);
+    text-shadow: 2px 2px 4px var(--shadow-color);
+}
+
+/* 当前时间样式 */
+.current-time {
+    text-align: center;
+    margin: var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* 精确倒计时样式 */
+.precise-countdown-container {
+    text-align: center;
+    margin: var(--spacing-md) 0;
+    font-size: var(--font-size-xxl);
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.countdown-label {
+    display: inline-block;
+    margin-right: var(--spacing-sm);
+    white-space: nowrap;
+}
+
+.precise-countdown {
+    display: inline-block;
+    font-family: var(--font-family-mono);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.countdown-digits {
+    font-family: monospace;
+    display: inline-block;
+    min-width: 1.2em;
+    text-align: center;
+}
+
+/* 统计信息容器样式 */
+#stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-sm);
+}
+
+.stat-item {
+    background-color: var(--card-bg);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    box-shadow: var(--shadow-sm) var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-header {
+    font-weight: bold;
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-xs);
+    color: var(--stat-color);
+}
+
+.stat-detail {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-sm);
+    color: var(--stat-color);
+}
+
+.progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    margin-top: auto;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg,
+        var(--stat-color) 0%,
+        color-mix(in srgb, var(--stat-color) 70%, transparent) 100%
+    );
+    border-radius: var(--border-radius-sm);
+    transition: width 0.5s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        transparent 100%
+    );
+    animation: shimmer 2s infinite;
+}
+
+.progress-milestone {
+    position: absolute;
+    top: 50%;
+    width: 1px;
+    height: 8px;
+    background-color: var(--bg-color);
+    transform: translateY(-50%);
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.progress-milestone.reached {
+    background-color: var(--stat-color);
+    box-shadow: 0 0 4px var(--stat-color);
+    opacity: 1;
+}
+
+@keyframes celebrate {
+    0%, 100% {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-50%) scale(1.5);
+        opacity: 0.8;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.progress-text {
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+    color: var(--stat-color);
+    transition: all 0.3s ease;
+}
+
+.progress-text.near-complete {
+    animation: pulse 1.5s ease-in-out infinite;
+    font-weight: bold;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+/* 节日倒计时样式 */
+.stat-item.spring-festival {
+    --stat-color: #ff69b4;
+    background-color: rgba(255, 105, 180, 0.1);
+}
+
+.stat-item.winter-holiday {
+    --stat-color: #4169E1;
+    background-color: rgba(65, 105, 225, 0.1);
+}
+
+.stat-item.valentines-day {
+    --stat-color: #FF1493;
+    background-color: rgba(255, 20, 147, 0.1);
+}
+
+.stat-item.qingming-festival {
+    --stat-color: #98FB98;
+    background-color: rgba(152, 251, 152, 0.1);
+}
+
+.stat-item.labor-day {
+    --stat-color: #a7a8bd;
+    background-color: rgba(167, 168, 189, 0.1);
+}
+
+.stat-item.dragon-boat {
+    --stat-color: #40E0D0;
+    background-color: rgba(64, 224, 208, 0.1);
+}
+
+.stat-item.mid-autumn {
+    --stat-color: #F4C430;  /* 月亮金黄色 */
+    background-color: rgba(244, 196, 48, 0.1);
+}
+
+.stat-item.national-day {
+    --stat-color: #f03752;  /* 金色 */
+    background-color: rgba(240, 55, 82, 0.1);
+}
+
+.stat-item.national {
+    --stat-color: #DC143C;
+    background-color: rgba(220, 20, 60, 0.1);
+}
+
+.stat-item.work {
+    --stat-color: #ff0000;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+.stat-item.weekend {
+    --stat-color: #00ffff;
+    background-color: rgba(0, 255, 255, 0.1);
+}
+
+.stat-item.today {
+    --stat-color: #C6DFC8;  /* 使用绿色表示今日进度 */
+    background-color: rgba(198, 223, 200, 0.1);
+}
+
+.stat-item.week {
+    --stat-color: rgb(0,128,255);
+    background-color: rgba(0, 128, 255, 0.1);
+}
+
+.stat-item.month {
+    --stat-color: #9370DB;  /* 改为紫色系 */
+    background-color: rgba(147, 112, 219, 0.1);
+}
+
+.stat-item.year {
+    --stat-color: rgb(255,69,0);
+    background-color: rgba(255, 69, 0, 0.1);
+}
+
+.stat-item.salary {
+    --stat-color: #55bb8a;  /* 金色 */
+    background-color: rgba(85, 187, 138, 0.1);
+}
+
+.stat-item.children-day {
+    --stat-color: #e9ccd3;  /* 粉色 */
+    background-color: rgba(233, 204, 211, 0.1);
+}
+
+.stat-item.off-work {
+    --stat-color: #c04851; 
+    background-color: rgba(192, 72, 81, 0.1);
+}
+
+.stat-item.february-last-day {
+    --stat-color: #4a90e2;
+    background-color: rgba(74, 144, 226, 0.1);
+}
+
+.stat-item.lunar-february-last-day {
+    --stat-color: #9b4dca;
+    background-color: rgba(155, 77, 202, 0.1);
+}
+
+/* 端午节卡片样式 */
+.stat-item.dragon-boat-festival {
+    --stat-color: #00B26F;  /* 粽叶绿色 */
+    background-color: rgba(0, 178, 111, 0.1);
+}
+
+/* 公历和农历日期显示的样式 */
+#solar-date {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+#lunar-date {
+    font-size: 1.0rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* 为图标添加样式 */
+.current-time i {
+    margin-right: var(--spacing-xs);
+}
+
+/* 添加动画关键帧 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulseNumber {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    :root {
+        --font-size-xxl: 1.5em;
+        --font-size-xl: 1.4em;
+        --font-size-lg: 1em;
+    }
+
+    body {
+        padding: var(--spacing-xs);
+    }
+
+    #stats-container {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+
+    .countdown-label {
+        display: block;
+        margin-bottom: var(--spacing-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .theme-text {
+        display: none;
+    }
+
+    #theme-toggle {
+        padding: var(--spacing-xs);
+    }
+}
+
+@media screen and (max-width: 768px) {
+    body {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .current-time {
+        font-size: var(--font-size-base);
+    }
+
+    .precise-countdown-container {
+        font-size: var(--font-size-xl);
+        white-space: nowrap;
+    }
+
+    .countdown-label {
+        display: inline-block;
+        margin-right: var(--spacing-sm);
+        white-space: nowrap;
+    }
+
+    #stats-container {
+        grid-template-columns: 1fr;
+        padding: var(--spacing-xs);
+    }
+
+    .theme-text {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    h1 {
+        font-size: var(--font-size-md);
+    }
+
+    .precise-countdown-container {
+        font-size: var(--font-size-lg);
+    }
+
+    .stat-header {
+        font-size: var(--font-size-base);
+    }
+
+    .stat-detail {
+        font-size: var(--font-size-xs);
+    }
+}
+
+/* 确保在更大屏幕上内容不会过宽 */
+@media screen and (min-width: 1400px) {
+    #stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+}
+
+/* 里程碑提示样式 */
+.milestone-alert {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm) var(--shadow-color);
+    font-size: 0.9em;
+    z-index: 100;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 1000;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.loading-text {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+/* 当页面加载完成后隐藏加载动画 */
+.loading-spinner.hidden {
+    display: none;
+}
+
+/* 在现有卡片样式基础上添加 */
+.countdown-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform-origin: center bottom;
+}
+
+.countdown-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.progress-bar {
+    transition: width 0.5s ease-in-out;
+}
+
+.ripple-effect {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: translate(-50%, -50%) scale(4);
+        opacity: 0;
+    }
+}
+
+main {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 确保加载完成后显示内容 */
+main.hidden {
+    display: none;
+}
+
+/* 黄历卡片样式 */
+.huangli-container {
+    margin: 2rem auto;
+    max-width: 800px;
+}
+
+.huangli-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.lunar-info {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+.lunar-date {
+    font-size: 1.2rem;
+    color: var(--highlight-color);
+    margin-bottom: 0.5rem;
+}
+
+.gan-zhi, .jie-qi {
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+    margin-top: 0.5rem;
+}
+
+.huangli-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.huangli-header {
+    padding: 0.5rem;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.yi-header {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4CAF50;
+}
+
+.ji-header {
+    background: rgba(244, 67, 54, 0.15);
+    color: #F44336;
+}
+
+.huangli-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.huangli-list li {
+    padding: 0.8rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.huangli-list li:hover {
+    transform: translateX(5px);
+    background: rgba(255,255,255,0.1);
+}
+
+/* 移动端适配 */
+@media (max-width: 600px) {
+    .huangli-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .huangli-card {
+        margin: 1rem;
+        padding: 1rem;
+    }
+}
+
+/* 新增布局样式 */
+.content-wrapper {
+    display: grid;
+    grid-template-columns: 280px minmax(auto, 800px) 280px;
+    gap: 2rem;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.side-content {
+    position: sticky;
+    top: 2rem;
+    height: calc(100vh - 4rem); /* 设置高度为视口高度减去上下边距 */
+    display: flex;              /* 添加 flex 布局 */
+    align-items: center;        /* 垂直居中 */
+}
+
+.side-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;               /* 确保卡片占满容器宽度 */
+}
+
+.side-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.side-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.yi-content .side-title {
+    color: #4CAF50;
+}
+
+.ji-content .side-title {
+    color: #F44336;
+}
+
+.side-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 240px;
+}
+
+.side-list li {
+    padding: 0.75rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    text-align: center;
+    width: 100%;
+}
+
+/* 宜事项样式 */
+.yi-content .side-list li {
+    background-color: rgba(76, 175, 80, 0.1); /* 绿色透明背景 */
+    color: #4CAF50; /* 绿色文字 */
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.yi-content .side-list li:hover {
+    background-color: rgba(76, 175, 80, 0.2);
+    transform: translateY(-2px);
+}
+
+/* 忌事项样式 */
+.ji-content .side-list li {
+    background-color: rgba(244, 67, 54, 0.1); /* 红色透明背景 */
+    color: #F44336; /* 红色文字 */
+    border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.ji-content .side-list li:hover {
+    background-color: rgba(244, 67, 54, 0.2);
+    transform: translateY(-2px);
+}
+
+/* 响应式布局 */
+@media (max-width: 1200px) {
+    .content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .side-content {
+        height: auto;          /* 在小屏幕上取消固定高度 */
+        position: static;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1200px) {
+    .content-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .center-content {
+        grid-column: 1 / -1;
+        order: -1;
+    }
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] .side-card {
+    background: var(--card-bg-dark, #2d2d2d);
+}
+
+[data-theme="dark"] .side-list li {
+    background: var(--card-hover-dark, #363636);
+}
+
+/* 响应式布局调整 */
+@media (max-width: 1400px) {
+    .side-list {
+        grid-template-columns: 1fr; /* 在较小屏幕上改为单列 */
+    }
+}
+
+/* 修改目标时间样式 */
+.target-time {
+    position: absolute;
+    bottom: var(--spacing-sm);
+    right: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--stat-color);  /* 改用卡片的主题色 */
+    opacity: 0.85;  /* 稍微调高不透明度 */
+    font-style: italic;
+}
+
+/* 添加悬停效果 */
+.stat-item:hover .target-time {
+    opacity: 1;  /* 悬停时完全不透明 */
+}
+
+.solar-date, .lunar-date {
+    display: block;
+    margin: 5px 0;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.solar-date {
+    font-size: 1.4em;  /* 阳历稍大一些 */
+    margin-bottom: 8px;
+}
+
+.lunar-date {
+    font-size: 1.2em;  /* 阴历稍小一些 */
+    color: #888;  /* 阴历颜色淡一些 */
+}
+
+#current-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.solar-date, .lunar-date {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.solar-date {
+    font-size: 1.2em;
+    margin-bottom: 4px;
+}
+
+.lunar-date {
+    font-size: 1.1em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#solar-date-text, #lunar-date-text {
+    display: inline-block;
+    text-align: center;
+}
