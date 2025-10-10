@@ -299,6 +299,18 @@ h1 {
     }
 }
 
+/* 元旦倒计时卡片样式 */
+.stat-item.new-year {
+    --stat-color: #FF6B35;  /* 新年红色 - 温暖的红橙色 */
+    background-color: rgba(255, 107, 53, 0.1);
+}
+
+/* 元宵节倒计时卡片样式 */
+.stat-item.lantern-festival {
+    --stat-color: #FFD700;  /* 灯笼金色 - 明亮的金黄色 */
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
 /* 节日倒计时样式 */
 .stat-item.spring-festival {
     --stat-color: #ff69b4;
