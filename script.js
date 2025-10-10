@@ -5,18 +5,86 @@ const TIME = {
     UPDATE_INTERVAL: 1000
 };
 
+// 节日配置
+const HOLIDAY_CONFIG = {
+    // 公历节日
+    solar: {
+        newYear: { month: 1, day: 1, name: '元旦' },
+        valentine: { month: 2, day: 14, name: '情人节' },
+        laborDay: { month: 5, day: 1, name: '劳动节' },
+        nationalDay: { month: 10, day: 1, name: '国庆节' },
+        childrenDay: { month: 6, day: 1, name: '儿童节' }
+    },
+    
+    // 农历节日
+    lunar: {
+        lanternFestival: { month: 1, day: 15, name: '元宵节' },
+        dragonBoat: { month: 5, day: 5, name: '端午节' },
+        midAutumn: { month: 8, day: 15, name: '中秋节' }
+    },
+    
+    // 业务相关日期
+    business: {
+        salaryDay: 15,
+        companyHoliday: { month: 1, day: 23, hour: 17, minute: 30 },
+        workHours: { 
+            start: { hour: 8, minute: 30 }, 
+            end: { hour: 17, minute: 0 } 
+        }
+    },
+    
+    // 备用日期
+    fallback: {
+        qingming: { month: 4, day: 5 },
+        februaryLast: { month: 2, day: 28 }
+    }
+};
 
 const DATES = {
-    SALARY_DAY: 15,
+    SALARY_DAY: HOLIDAY_CONFIG.business.salaryDay,
     get COMPANY_HOLIDAY() {
         return getNextHoliday();
     }
 };
 
-// 计算最近的1月23日17:30
+// 配置访问工具类
+const ConfigUtil = {
+    // 获取公历节日配置
+    getSolarHoliday(name) {
+        return HOLIDAY_CONFIG.solar[name];
+    },
+    
+    // 获取农历节日配置
+    getLunarHoliday(name) {
+        return HOLIDAY_CONFIG.lunar[name];
+    },
+    
+    // 获取业务配置
+    getBusinessConfig(key) {
+        return HOLIDAY_CONFIG.business[key];
+    },
+    
+    // 获取备用配置
+    getFallbackConfig(key) {
+        return HOLIDAY_CONFIG.fallback[key];
+    },
+    
+    // 获取公司放假日期
+    getCompanyHolidayDate() {
+        const config = this.getBusinessConfig('companyHoliday');
+        return new Date(new Date().getFullYear(), config.month - 1, config.day, config.hour, config.minute);
+    },
+    
+    // 获取工作时间配置
+    getWorkHours() {
+        return this.getBusinessConfig('workHours');
+    }
+};
+
+// 计算公司放假日期
 function getNextHoliday() {
     const now = new Date();
-    const targetDate = new Date(now.getFullYear(), 0, 23, 17, 30);
+    const targetDate = ConfigUtil.getCompanyHolidayDate();
     if (now > targetDate) {
         targetDate.setFullYear(targetDate.getFullYear() + 1);
     }
@@ -194,13 +262,14 @@ function getNextFestival(month, day) {
     return festivalThisYear;
 }
 
-// 获取下一个儿童节日期（6月1日）
+// 获取下一个儿童节日期
 function getNextChildrenDay() {
     const now = new Date();
     const currentYear = now.getFullYear();
+    const childrenDayConfig = ConfigUtil.getSolarHoliday('childrenDay');
     
     // 创建今年的儿童节日期
-    const childrenDayThisYear = new Date(currentYear, 5, 1); // 6月1日，月份从0开始
+    const childrenDayThisYear = new Date(currentYear, childrenDayConfig.month - 1, childrenDayConfig.day);
     
     // 如果今年的儿童节还没到，返回今年的日期
     if (now < childrenDayThisYear) {
@@ -208,7 +277,7 @@ function getNextChildrenDay() {
     }
     
     // 如果今年的儿童节已过，返回明年的日期
-    return new Date(currentYear + 1, 5, 1);
+    return new Date(currentYear + 1, childrenDayConfig.month - 1, childrenDayConfig.day);
 }
 
 // 获取下一个二月最后一天
@@ -248,103 +317,101 @@ function getNextLunarFebruarySpecialDay() {
     else if (currentMonth === 2 && currentDay >= 29) {
         targetYear++;
     }
-    
-    // 获取目标年份的农历二月二十九日
-    let targetLunar = new Lunar(targetYear, 2, 29);
-    let solar = targetLunar.getSolar();
-    
-    // 如果农历二月二十九不存在，则取二十八日
-    if (!solar) {
-        targetLunar = new Lunar(targetYear, 2, 28);
-        solar = targetLunar.getSolar();
+    else if (currentMonth === 2 && currentDay >= 28) {
+        // 检查今年农历二月是否有二十九日
+        try {
+            const testDate = Lunar.fromYmd(currentYear, 2, 29);
+            const solarDate = testDate.getSolar();
+            const testSolarDate = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+            
+            // 如果已经过了二十八日，且今年没有二十九日，取下一年
+            if (Lunar.fromDate(testSolarDate).getMonth() !== 2) {
+                targetYear++;
+            }
+        } catch {
+            targetYear++;
+        }
     }
     
-    return {
-        date: new Date(solar.getYear(), solar.getMonth() - 1, solar.getDay()),
-        year: targetYear,
-        lunar: targetLunar
-    };
+    try {
+        // 尝试获取农历二月二十九
+        let targetLunar;
+        let targetDay = 29;
+        try {
+            targetLunar = Lunar.fromYmd(targetYear, 2, 29);
+            const solarDate = targetLunar.getSolar();
+            const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+            
+            // 检查是否是有效的农历日期
+            const checkLunar = Lunar.fromDate(solarDateTime);
+            if (checkLunar.getMonth() !== 2) {
+                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                targetDay = 28;
+            }
+        } catch {
+            targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+            targetDay = 28;
+        }
+        
+        // 获取对应的公历日期
+        const solarDate = targetLunar.getSolar();
+        const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
+        
+        // 如果计算出的日期在当前日期之前，取下一年
+        if (solarDateTime < now) {
+            targetYear++;
+            try {
+                targetLunar = Lunar.fromYmd(targetYear, 2, 29);
+                const nextSolar = targetLunar.getSolar();
+                const nextDateTime = new Date(nextSolar.getYear(), nextSolar.getMonth() - 1, nextSolar.getDay());
+                const checkNextLunar = Lunar.fromDate(nextDateTime);
+                
+                if (checkNextLunar.getMonth() === 2) {
+                    solarDateTime.setTime(nextDateTime.getTime());
+                    targetDay = 29;
+                } else {
+                    targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                    const finalSolar = targetLunar.getSolar();
+                    solarDateTime.setFullYear(finalSolar.getYear());
+                    solarDateTime.setMonth(finalSolar.getMonth() - 1);
+                    solarDateTime.setDate(finalSolar.getDay());
+                    targetDay = 28;
+                }
+            } catch {
+                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
+                const finalSolar = targetLunar.getSolar();
+                solarDateTime.setFullYear(finalSolar.getYear());
+                solarDateTime.setMonth(finalSolar.getMonth() - 1);
+                solarDateTime.setDate(finalSolar.getDay());
+                targetDay = 28;
+            }
+        }
+        
+        return {
+            date: solarDateTime,
+            year: targetLunar.getYearInChinese(),
+            month: targetLunar.getMonthInChinese(),
+            day: targetLunar.getDayInChinese(),
+            solarYear: solarDateTime.getFullYear(),
+            targetDay: targetDay
+        };
+    } catch (error) {
+        console.error('Error calculating lunar February special day:', error);
+        // 返回一个默认值，使用公历2月28日作为后备
+        const februaryFallback = ConfigUtil.getFallbackConfig('februaryLast');
+        const fallbackDate = new Date(targetYear, februaryFallback.month - 1, februaryFallback.day);
+        return {
+            date: fallbackDate,
+            year: targetYear.toString(),
+            month: '二',
+            day: '二十八',
+            solarYear: targetYear,
+            targetDay: 28
+        };
+    }
 }
 
-// DOM缓存工具类
-const DOMCache = {
-    cache: new Map(),
-    
-    // 获取缓存的DOM元素
-    get(selector) {
-        if (!this.cache.has(selector)) {
-            this.cache.set(selector, document.querySelector(selector));
-        }
-        return this.cache.get(selector);
-    },
-    
-    // 获取所有匹配的元素
-    getAll(selector) {
-        const cacheKey = `all:${selector}`;
-        if (!this.cache.has(cacheKey)) {
-            this.cache.set(cacheKey, document.querySelectorAll(selector));
-        }
-        return this.cache.get(cacheKey);
-    },
-    
-    // 清除缓存
-    clear() {
-        this.cache.clear();
-    },
-    
-    // 清除特定缓存
-    clearSelector(selector) {
-        this.cache.delete(selector);
-        this.cache.delete(`all:${selector}`);
-    }
-};
 
-// 卡片更新工具类
-const CardUpdateUtil = {
-    // 更新卡片内容
-    updateCardContent(card, detailText, progress) {
-        const detail = card.querySelector('.stat-detail');
-        const progressBar = card.querySelector('.progress-bar');
-        const progressText = card.querySelector('.progress-text');
-        
-        if (detail) detail.textContent = detailText;
-        if (progressBar) progressBar.style.width = `${progress}%`;
-        if (progressText) progressText.textContent = `(${progress.toFixed(1)}%)`;
-    },
-    
-    // 更新进度特效
-    updateProgressEffects(card, progress) {
-        const progressContainer = card.querySelector('.progress-container');
-        const progressText = card.querySelector('.progress-text');
-        
-        if (progressContainer) {
-            ProgressEffects.updateMilestones(progressContainer, progress);
-        }
-        if (progressText) {
-            ProgressEffects.updateProgressText(progressText, progress);
-        }
-    },
-    
-    // 完整更新卡片（内容+特效）
-    updateCard(card, detailText, progress, enableEffects = true) {
-        this.updateCardContent(card, detailText, progress);
-        if (enableEffects) {
-            this.updateProgressEffects(card, progress);
-        }
-    },
-    
-    // 格式化倒计时文本
-    formatCountdownText(days, hours, minutes, seconds, format = 'standard') {
-        switch (format) {
-            case 'compact':
-                return `还剩 ${days}天${hours}小时${minutes}分钟${seconds}秒`;
-            case 'detailed':
-                return `还剩 ${days} 天 ${hours} 小时 ${minutes} 分钟 ${seconds} 秒`;
-            default:
-                return `还剩 ${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
-        }
-    }
-};
 
 // 计算距离下班的时间（返回秒数）
 function calculateTimeToOffWork() {
@@ -357,10 +424,11 @@ function calculateTimeToOffWork() {
     }
     
     // 设置今天的上下班时间
+    const workHours = ConfigUtil.getWorkHours();
     const workStart = new Date(now);
-    workStart.setHours(8, 30, 0, 0); // 上班时间8:30
+    workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
     const workEnd = new Date(now);
-    workEnd.setHours(17, 0, 0, 0); // 下班时间17:00
+    workEnd.setHours(workHours.end.hour, workHours.end.minute, 0, 0);
     
     // 如果未到上班时间，返回-1表示未上班
     if (now < workStart) {
@@ -388,10 +456,11 @@ function calculateOffWorkProgress() {
     }
     
     // 工作日的起止时间
+    const workHours = ConfigUtil.getWorkHours();
     const workStart = new Date(now);
-    workStart.setHours(8, 30, 0, 0);  // 上班时间8:30
+    workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
     const workEnd = new Date(now);
-    workEnd.setHours(17, 0, 0, 0);  // 下班时间17:00
+    workEnd.setHours(workHours.end.hour, workHours.end.minute, 0, 0);
     
     // 如果未到上班时间，进度为0
     if (now < workStart) {
@@ -606,13 +675,21 @@ function updateStats() {
         const companyProgress = ProgressUtil.calculateFestival(companyHoliday);
 
         // 获取各个节日的下一个日期
-        const nextNewYear = getNextFestival(1, 1);     // 元旦
-        const nextValentine = getNextFestival(2, 14);  // 情人节
-        const nextLabor = getNextFestival(5, 1);       // 劳动节
-        const nextNationalDay = getNextFestival(10, 1); // 国庆节
+        const newYearConfig = ConfigUtil.getSolarHoliday('newYear');
+        const nextNewYear = getNextFestival(newYearConfig.month, newYearConfig.day);
+        
+        const valentineConfig = ConfigUtil.getSolarHoliday('valentine');
+        const nextValentine = getNextFestival(valentineConfig.month, valentineConfig.day);
+        
+        const laborConfig = ConfigUtil.getSolarHoliday('laborDay');
+        const nextLabor = getNextFestival(laborConfig.month, laborConfig.day);
+        
+        const nationalConfig = ConfigUtil.getSolarHoliday('nationalDay');
+        const nextNationalDay = getNextFestival(nationalConfig.month, nationalConfig.day);
         
         // 元宵节计算（农历正月十五）
-        const nextLanternFestival = getNextLunarFestival(1, 15);
+        const lanternConfig = ConfigUtil.getLunarHoliday('lanternFestival');
+        const nextLanternFestival = getNextLunarFestival(lanternConfig.month, lanternConfig.day);
         
         // 清明节计算 - 使用农历节气计算（安全方法）
         const lunarNow = Lunar.fromDate(now);
@@ -641,10 +718,11 @@ function updateStats() {
         } catch (error) {
             // 如果节气计算失败，回退到固定日期
             console.warn('清明节节气计算失败，使用固定日期:', error);
+            const qingmingFallback = ConfigUtil.getFallbackConfig('qingming');
             const currentYear = now.getFullYear();
-            nextQingming = new Date(currentYear, 3, 5); // 4月5日
+            nextQingming = new Date(currentYear, qingmingFallback.month - 1, qingmingFallback.day);
             if (nextQingming < now) {
-                nextQingming = new Date(currentYear + 1, 3, 5);
+                nextQingming = new Date(currentYear + 1, qingmingFallback.month - 1, qingmingFallback.day);
             }
         }
 
@@ -680,7 +758,7 @@ function updateStats() {
 
         // 计算发薪日倒计时
         const today = now.getDate();
-        const salaryDay = DATES.SALARY_DAY;
+        const salaryDay = ConfigUtil.getBusinessConfig('salaryDay');
         let salaryDetail, salaryProgress;
         
         // 计算到下个发薪日的时间
@@ -729,115 +807,7 @@ function updateStats() {
         const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
         const februaryLastDayProgress = ProgressUtil.calculateFestival(februaryLastDayInfo.date);
 
-        // 获取下一个农历二月二十九（如果没有则是二十八）
-        function getNextLunarFebruarySpecialDay() {
-            const now = new Date();
-            const lunar = Lunar.fromDate(now);
-            const currentYear = lunar.getYear();
-            const currentMonth = lunar.getMonth();
-            const currentDay = lunar.getDay();
-            
-            let targetYear = currentYear;
-            // 如果当前已经过了农历二月，需要取下一年
-            if (currentMonth > 2) {
-                targetYear++;
-            }
-            // 如果当前是农历二月，但已经过了二十九日（或二十八日），需要取下一年
-            else if (currentMonth === 2 && currentDay >= 29) {
-                targetYear++;
-            }
-            else if (currentMonth === 2 && currentDay >= 28) {
-                // 检查今年农历二月是否有二十九日
-                try {
-                    const testDate = Lunar.fromYmd(currentYear, 2, 29);
-                    const solarDate = testDate.getSolar();
-                    const testSolarDate = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                    
-                    // 如果已经过了二十八日，且今年没有二十九日，取下一年
-                    if (Lunar.fromDate(testSolarDate).getMonth() !== 2) {
-                        targetYear++;
-                    }
-                } catch {
-                    targetYear++;
-                }
-            }
-            
-            try {
-                // 尝试获取农历二月二十九
-                let targetLunar;
-                let targetDay = 29;
-                try {
-                    targetLunar = Lunar.fromYmd(targetYear, 2, 29);
-                    const solarDate = targetLunar.getSolar();
-                    const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                    
-                    // 检查是否是有效的农历日期
-                    const checkLunar = Lunar.fromDate(solarDateTime);
-                    if (checkLunar.getMonth() !== 2) {
-                        targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                        targetDay = 28;
-                    }
-                } catch {
-                    targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                    targetDay = 28;
-                }
-                
-                // 获取对应的公历日期
-                const solarDate = targetLunar.getSolar();
-                const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                
-                // 如果计算出的日期在当前日期之前，取下一年
-                if (solarDateTime < now) {
-                    targetYear++;
-                    try {
-                        targetLunar = Lunar.fromYmd(targetYear, 2, 29);
-                        const nextSolar = targetLunar.getSolar();
-                        const nextDateTime = new Date(nextSolar.getYear(), nextSolar.getMonth() - 1, nextSolar.getDay());
-                        const checkNextLunar = Lunar.fromDate(nextDateTime);
-                        
-                        if (checkNextLunar.getMonth() === 2) {
-                            solarDateTime.setTime(nextDateTime.getTime());
-                            targetDay = 29;
-                        } else {
-                            targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                            const finalSolar = targetLunar.getSolar();
-                            solarDateTime.setFullYear(finalSolar.getYear());
-                            solarDateTime.setMonth(finalSolar.getMonth() - 1);
-                            solarDateTime.setDate(finalSolar.getDay());
-                            targetDay = 28;
-                        }
-                    } catch {
-                        targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                        const finalSolar = targetLunar.getSolar();
-                        solarDateTime.setFullYear(finalSolar.getYear());
-                        solarDateTime.setMonth(finalSolar.getMonth() - 1);
-                        solarDateTime.setDate(finalSolar.getDay());
-                        targetDay = 28;
-                    }
-                }
-                
-                return {
-                    date: solarDateTime,
-                    year: targetLunar.getYearInChinese(),
-                    month: targetLunar.getMonthInChinese(),
-                    day: targetLunar.getDayInChinese(),
-                    solarYear: solarDateTime.getFullYear(),
-                    targetDay: targetDay
-                };
-            } catch (error) {
-                console.error('Error calculating lunar February special day:', error);
-                // 返回一个默认值，使用公历2月28日作为后备
-                const fallbackDate = new Date(targetYear, 1, 28);
-                return {
-                    date: fallbackDate,
-                    year: targetYear.toString(),
-                    month: '二',
-                    day: '二十八',
-                    solarYear: targetYear,
-                    targetDay: 28
-                };
-            }
-        }
+        // 使用全局定义的getNextLunarFebruarySpecialDay函数
 
         // 获取农历二月特殊日期信息
         const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
@@ -846,7 +816,8 @@ function updateStats() {
         const lunarFebruaryProgress = ProgressUtil.calculateFestival(lunarFebruaryInfo.date);
 
         // 获取中秋节日期（农历八月十五）
-        const midAutumnDay = getNextLunarFestival(8, 15);
+        const midAutumnConfig = ConfigUtil.getLunarHoliday('midAutumn');
+        const midAutumnDay = getNextLunarFestival(midAutumnConfig.month, midAutumnConfig.day);
         const secondsToMidAutumn = TimeUtil.getSecondsTo(midAutumnDay);
         const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
         const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
@@ -854,7 +825,9 @@ function updateStats() {
         // 在 updateStats 函数中的 stats 数组里添加端午节卡片配置
         // 找到创建统计项的位置，在 stats 数组中添加：
 
-        const dragonBoatDay = getNextLunarFestival(5, 5); // 农历五月初五是端午节
+        // 端午节计算（农历五月初五）
+        const dragonBoatConfig = ConfigUtil.getLunarHoliday('dragonBoat');
+        const dragonBoatDay = getNextLunarFestival(dragonBoatConfig.month, dragonBoatConfig.day);
         const secondsToDragonBoat = TimeUtil.getSecondsTo(dragonBoatDay);
         const [dragonBoatDays, dragonBoatHours, dragonBoatMinutes, dragonBoatSeconds] = TimeUtil.secondsToDHMS(secondsToDragonBoat);
         const dragonBoatProgress = ProgressUtil.calculateFestival(dragonBoatDay);
@@ -1131,7 +1104,8 @@ function updateStats() {
                 progressBar.style.width = `${yearPercent}%`;
                 progressText.textContent = `(${yearPercent.toFixed(1)}%)`;
             } else if (card.classList.contains('new-year')) {
-                const nextNewYear = getNextFestival(1, 1);
+                const newYearConfig = ConfigUtil.getSolarHoliday('newYear');
+                const nextNewYear = getNextFestival(newYearConfig.month, newYearConfig.day);
                 const secondsToNewYear = TimeUtil.getSecondsTo(nextNewYear);
                 const [newYearDays, newYearHours, newYearMinutes, newYearSeconds] = TimeUtil.secondsToDHMS(secondsToNewYear);
                 const newYearProgress = ProgressUtil.calculateFestival(nextNewYear);
@@ -1153,7 +1127,8 @@ function updateStats() {
                 progressBar.style.width = `${springProgress}%`;
                 progressText.textContent = `(${springProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('lantern-festival')) {
-                const nextLanternFestival = getNextLunarFestival(1, 15);
+                const lanternConfig = ConfigUtil.getLunarHoliday('lanternFestival');
+                const nextLanternFestival = getNextLunarFestival(lanternConfig.month, lanternConfig.day);
                 const secondsToLanternFestival = TimeUtil.getSecondsTo(nextLanternFestival);
                 const [lanternDays, lanternHours, lanternMinutes, lanternSeconds] = TimeUtil.secondsToDHMS(secondsToLanternFestival);
                 const lanternProgress = ProgressUtil.calculateFestival(nextLanternFestival);
@@ -1166,7 +1141,8 @@ function updateStats() {
                 progressBar.style.width = `${lanternProgress}%`;
                 progressText.textContent = `(${lanternProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('valentines-day')) {
-                const nextValentine = getNextFestival(2, 14);
+                const valentineConfig = ConfigUtil.getSolarHoliday('valentine');
+                const nextValentine = getNextFestival(valentineConfig.month, valentineConfig.day);
                 const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
                 const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
                 const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
@@ -1202,10 +1178,11 @@ function updateStats() {
                 } catch (error) {
                     // 如果节气计算失败，回退到固定日期
                     console.warn('清明节节气计算失败，使用固定日期:', error);
+                    const qingmingFallback = ConfigUtil.getFallbackConfig('qingming');
                     const currentYear = now.getFullYear();
-                    qingmingDate = new Date(currentYear, 3, 5); // 4月5日
+                    qingmingDate = new Date(currentYear, qingmingFallback.month - 1, qingmingFallback.day);
                     if (qingmingDate < now) {
-                        qingmingDate = new Date(currentYear + 1, 3, 5);
+                        qingmingDate = new Date(currentYear + 1, qingmingFallback.month - 1, qingmingFallback.day);
                     }
                 }
                 const secondsToQingming = TimeUtil.getSecondsTo(qingmingDate);
@@ -1220,7 +1197,8 @@ function updateStats() {
                 progressBar.style.width = `${qingmingProgress}%`;
                 progressText.textContent = `(${qingmingProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('labor-day')) {
-                const nextLabor = getNextFestival(5, 1);
+                const laborConfig = ConfigUtil.getSolarHoliday('laborDay');
+                const nextLabor = getNextFestival(laborConfig.month, laborConfig.day);
                 const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
                 const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
                 const laborProgress = ProgressUtil.calculateFestival(nextLabor);
@@ -1233,7 +1211,8 @@ function updateStats() {
                 progressBar.style.width = `${laborProgress}%`;
                 progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('national-day')) {
-                const nextNationalDay = getNextFestival(10, 1);
+                const nationalConfig = ConfigUtil.getSolarHoliday('nationalDay');
+                const nextNationalDay = getNextFestival(nationalConfig.month, nationalConfig.day);
                 const secondsToNationalDay = TimeUtil.getSecondsTo(nextNationalDay);
                 const [nationalDays, nationalHours, nationalMinutes, nationalSeconds] = TimeUtil.secondsToDHMS(secondsToNationalDay);
                 const nationalDayProgress = ProgressUtil.calculateFestival(nextNationalDay);
@@ -1277,7 +1256,7 @@ function updateStats() {
                 progressText.textContent = `(${offWorkProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('salary')) {
                 const today = now.getDate();
-                const salaryDay = DATES.SALARY_DAY;
+                const salaryDay = ConfigUtil.getBusinessConfig('salaryDay');
                 let salaryDetail, salaryProgress;
                 
                 const nextSalaryDate = new Date(now);
@@ -1318,26 +1297,7 @@ function updateStats() {
                 progressBar.style.width = `${salaryProgress}%`;
                 progressText.textContent = `(${salaryProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('february-last-day')) {
-                function getNextFebruaryLastDay() {
-                    const now = new Date();
-                    let year = now.getFullYear();
-                    
-                    // 如果当前月份已经过了2月，那么取下一年的2月
-                    if (now.getMonth() > 1) { // 0是一月，1是二月
-                        year += 1;
-                    }
-                    
-                    // 判断是否为闰年
-                    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-                    const lastDay = isLeapYear ? 29 : 28;
-                    
-                    return {
-                        date: new Date(year, 1, lastDay),
-                        isLeapYear,
-                        year
-                    };
-                }
-
+                // 使用全局定义的getNextFebruaryLastDay函数
                 const februaryLastDayInfo = getNextFebruaryLastDay();
                 const secondsToFebruaryLastDay = TimeUtil.getSecondsTo(februaryLastDayInfo.date);
                 const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
@@ -1349,105 +1309,7 @@ function updateStats() {
                 progressBar.style.width = `${februaryLastDayProgress}%`;
                 progressText.textContent = `(${februaryLastDayProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('lunar-february-last-day')) {
-                function getNextLunarFebruarySpecialDay() {
-                    const lunar = Lunar.fromDate(now);
-                    const currentYear = lunar.getYear();
-                    const currentMonth = lunar.getMonth();
-                    const currentDay = lunar.getDay();
-                    
-                    let targetYear = currentYear;
-                    if (currentMonth > 2) {
-                        targetYear++;
-                    }
-                    else if (currentMonth === 2 && currentDay >= 29) {
-                        targetYear++;
-                    }
-                    else if (currentMonth === 2 && currentDay >= 28) {
-                        try {
-                            const testDate = Lunar.fromYmd(currentYear, 2, 29);
-                            const solarDate = testDate.getSolar();
-                            const testSolarDate = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                            
-                            if (Lunar.fromDate(testSolarDate).getMonth() !== 2) {
-                                targetYear++;
-                            }
-                        } catch {
-                            targetYear++;
-                        }
-                    }
-                    
-                    try {
-                        let targetLunar;
-                        let targetDay = 29;
-                        try {
-                            targetLunar = Lunar.fromYmd(targetYear, 2, 29);
-                            const solarDate = targetLunar.getSolar();
-                            const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                            
-                            const checkLunar = Lunar.fromDate(solarDateTime);
-                            if (checkLunar.getMonth() !== 2) {
-                                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                                targetDay = 28;
-                            }
-                        } catch {
-                            targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                            targetDay = 28;
-                        }
-                        
-                        const solarDate = targetLunar.getSolar();
-                        const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                        
-                        if (solarDateTime < now) {
-                            targetYear++;
-                            try {
-                                targetLunar = Lunar.fromYmd(targetYear, 2, 29);
-                                const nextSolar = targetLunar.getSolar();
-                                const nextDateTime = new Date(nextSolar.getYear(), nextSolar.getMonth() - 1, nextSolar.getDay());
-                                const checkNextLunar = Lunar.fromDate(nextDateTime);
-                                
-                                if (checkNextLunar.getMonth() === 2) {
-                                    solarDateTime.setTime(nextDateTime.getTime());
-                                    targetDay = 29;
-                                } else {
-                                    targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                                    const finalSolar = targetLunar.getSolar();
-                                    solarDateTime.setFullYear(finalSolar.getYear());
-                                    solarDateTime.setMonth(finalSolar.getMonth() - 1);
-                                    solarDateTime.setDate(finalSolar.getDay());
-                                    targetDay = 28;
-                                }
-                            } catch {
-                                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                                const finalSolar = targetLunar.getSolar();
-                                solarDateTime.setFullYear(finalSolar.getYear());
-                                solarDateTime.setMonth(finalSolar.getMonth() - 1);
-                                solarDateTime.setDate(finalSolar.getDay());
-                                targetDay = 28;
-                            }
-                        }
-                        
-                        return {
-                            date: solarDateTime,
-                            year: targetLunar.getYearInChinese(),
-                            month: targetLunar.getMonthInChinese(),
-                            day: targetLunar.getDayInChinese(),
-                            solarYear: solarDateTime.getFullYear(),
-                            targetDay: targetDay
-                        };
-                    } catch (error) {
-                        console.error('Error calculating lunar February special day:', error);
-                        const fallbackDate = new Date(targetYear, 1, 28);
-                        return {
-                            date: fallbackDate,
-                            year: targetYear.toString(),
-                            month: '二',
-                            day: '二十八',
-                            solarYear: targetYear,
-                            targetDay: 28
-                        };
-                    }
-                }
-
+                // 使用全局定义的getNextLunarFebruarySpecialDay函数
                 const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
                 const secondsToLunarFebruary = TimeUtil.getSecondsTo(lunarFebruaryInfo.date);
                 const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
@@ -1459,7 +1321,8 @@ function updateStats() {
                 progressBar.style.width = `${lunarFebruaryProgress}%`;
                 progressText.textContent = `(${lunarFebruaryProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('mid-autumn')) {
-                const midAutumnDay = getNextLunarFestival(8, 15);
+                const midAutumnConfig = ConfigUtil.getLunarHoliday('midAutumn');
+                const midAutumnDay = getNextLunarFestival(midAutumnConfig.month, midAutumnConfig.day);
                 const secondsToMidAutumn = TimeUtil.getSecondsTo(midAutumnDay);
                 const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
                 const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
@@ -1470,7 +1333,8 @@ function updateStats() {
                 progressBar.style.width = `${midAutumnProgress}%`;
                 progressText.textContent = `(${midAutumnProgress.toFixed(1)}%)`;
             } else if (card.classList.contains('dragon-boat-festival')) {
-                const dragonBoatDay = getNextLunarFestival(5, 5);
+                const dragonBoatConfig = ConfigUtil.getLunarHoliday('dragonBoat');
+                const dragonBoatDay = getNextLunarFestival(dragonBoatConfig.month, dragonBoatConfig.day);
                 const secondsToDragonBoat = TimeUtil.getSecondsTo(dragonBoatDay);
                 const [dragonBoatDays, dragonBoatHours, dragonBoatMinutes, dragonBoatSeconds] = TimeUtil.secondsToDHMS(secondsToDragonBoat);
                 const dragonBoatProgress = ProgressUtil.calculateFestival(dragonBoatDay);
@@ -1548,7 +1412,8 @@ function updateStats() {
             progressBar.style.width = `${yearPercent}%`;
             progressText.textContent = `(${yearPercent.toFixed(1)}%)`;
         } else if (card.classList.contains('new-year')) {
-            const nextNewYear = getNextFestival(1, 1);
+            const newYearConfig = ConfigUtil.getSolarHoliday('newYear');
+            const nextNewYear = getNextFestival(newYearConfig.month, newYearConfig.day);
             const secondsToNewYear = TimeUtil.getSecondsTo(nextNewYear);
             const [newYearDays, newYearHours, newYearMinutes, newYearSeconds] = TimeUtil.secondsToDHMS(secondsToNewYear);
             const newYearProgress = ProgressUtil.calculateFestival(nextNewYear);
@@ -1567,7 +1432,8 @@ function updateStats() {
             progressBar.style.width = `${springProgress}%`;
             progressText.textContent = `(${springProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('lantern-festival')) {
-            const nextLanternFestival = getNextLunarFestival(1, 15);
+            const lanternConfig = ConfigUtil.getLunarHoliday('lanternFestival');
+            const nextLanternFestival = getNextLunarFestival(lanternConfig.month, lanternConfig.day);
             const secondsToLanternFestival = TimeUtil.getSecondsTo(nextLanternFestival);
             const [lanternDays, lanternHours, lanternMinutes, lanternSeconds] = TimeUtil.secondsToDHMS(secondsToLanternFestival);
             const lanternProgress = ProgressUtil.calculateFestival(nextLanternFestival);
@@ -1576,7 +1442,8 @@ function updateStats() {
             progressBar.style.width = `${lanternProgress}%`;
             progressText.textContent = `(${lanternProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('valentines-day')) {
-            const nextValentine = getNextFestival(2, 14);
+            const valentineConfig = ConfigUtil.getSolarHoliday('valentine');
+            const nextValentine = getNextFestival(valentineConfig.month, valentineConfig.day);
             const secondsToValentine = TimeUtil.getSecondsTo(nextValentine);
             const [valentineDays, valentineHours, valentineMinutes, valentineSeconds] = TimeUtil.secondsToDHMS(secondsToValentine);
             const valentineProgress = ProgressUtil.calculateFestival(nextValentine);
@@ -1610,15 +1477,16 @@ function updateStats() {
                         nextYearQingmingSolar.getDay()
                     );
                 }
-            } catch (error) {
-                // 如果节气计算失败，回退到固定日期
-                console.warn('清明节节气计算失败，使用固定日期:', error);
-                const currentYear = now.getFullYear();
-                qingmingDate = new Date(currentYear, 3, 5); // 4月5日
-                if (qingmingDate < now) {
-                    qingmingDate = new Date(currentYear + 1, 3, 5);
+                } catch (error) {
+                    // 如果节气计算失败，回退到固定日期
+                    console.warn('清明节节气计算失败，使用固定日期:', error);
+                    const qingmingFallback = ConfigUtil.getFallbackConfig('qingming');
+                    const currentYear = now.getFullYear();
+                    qingmingDate = new Date(currentYear, qingmingFallback.month - 1, qingmingFallback.day);
+                    if (qingmingDate < now) {
+                        qingmingDate = new Date(currentYear + 1, qingmingFallback.month - 1, qingmingFallback.day);
+                    }
                 }
-            }
             const secondsToQingming = TimeUtil.getSecondsTo(qingmingDate);
             const [qingmingDays, qingmingHours, qingmingMinutes, qingmingSeconds] = TimeUtil.secondsToDHMS(secondsToQingming);
             const qingmingProgress = ProgressUtil.calculateFestival(qingmingDate);
@@ -1627,7 +1495,8 @@ function updateStats() {
             progressBar.style.width = `${qingmingProgress}%`;
             progressText.textContent = `(${qingmingProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('labor-day')) {
-            const nextLabor = getNextFestival(5, 1);
+            const laborConfig = ConfigUtil.getSolarHoliday('laborDay');
+            const nextLabor = getNextFestival(laborConfig.month, laborConfig.day);
             const secondsToLabor = TimeUtil.getSecondsTo(nextLabor);
             const [laborDays, laborHours, laborMinutes, laborSeconds] = TimeUtil.secondsToDHMS(secondsToLabor);
             const laborProgress = ProgressUtil.calculateFestival(nextLabor);
@@ -1637,7 +1506,8 @@ function updateStats() {
             progressBar.style.width = `${laborProgress}%`;
             progressText.textContent = `(${laborProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('national-day')) {
-            const nextNationalDay = getNextFestival(10, 1);
+            const nationalConfig = ConfigUtil.getSolarHoliday('nationalDay');
+            const nextNationalDay = getNextFestival(nationalConfig.month, nationalConfig.day);
             const secondsToNationalDay = TimeUtil.getSecondsTo(nextNationalDay);
             const [nationalDays, nationalHours, nationalMinutes, nationalSeconds] = TimeUtil.secondsToDHMS(secondsToNationalDay);
             const nationalDayProgress = ProgressUtil.calculateFestival(nextNationalDay);
@@ -1672,7 +1542,7 @@ function updateStats() {
             progressText.textContent = `(${offWorkProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('salary')) {
             const today = now.getDate();
-            const salaryDay = DATES.SALARY_DAY;
+            const salaryDay = ConfigUtil.getBusinessConfig('salaryDay');
             let salaryDetail, salaryProgress;
             
             const nextSalaryDate = new Date(now);
@@ -1709,26 +1579,7 @@ function updateStats() {
             progressBar.style.width = `${salaryProgress}%`;
             progressText.textContent = `(${salaryProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('february-last-day')) {
-            function getNextFebruaryLastDay() {
-                const now = new Date();
-                let year = now.getFullYear();
-                
-                // 如果当前月份已经过了2月，那么取下一年的2月
-                if (now.getMonth() > 1) { // 0是一月，1是二月
-                    year += 1;
-                }
-                
-                // 判断是否为闰年
-                const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-                const lastDay = isLeapYear ? 29 : 28;
-                
-                return {
-                    date: new Date(year, 1, lastDay),
-                    isLeapYear,
-                    year
-                };
-            }
-
+            // 使用全局定义的getNextFebruaryLastDay函数
             const februaryLastDayInfo = getNextFebruaryLastDay();
             const secondsToFebruaryLastDay = TimeUtil.getSecondsTo(februaryLastDayInfo.date);
             const [febDays, febHours, febMinutes, febSeconds] = TimeUtil.secondsToDHMS(secondsToFebruaryLastDay);
@@ -1741,105 +1592,7 @@ function updateStats() {
             progressBar.style.width = `${februaryLastDayProgress}%`;
             progressText.textContent = `(${februaryLastDayProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('lunar-february-last-day')) {
-            function getNextLunarFebruarySpecialDay() {
-                const lunar = Lunar.fromDate(now);
-                const currentYear = lunar.getYear();
-                const currentMonth = lunar.getMonth();
-                const currentDay = lunar.getDay();
-                
-                let targetYear = currentYear;
-                if (currentMonth > 2) {
-                    targetYear++;
-                }
-                else if (currentMonth === 2 && currentDay >= 29) {
-                    targetYear++;
-                }
-                else if (currentMonth === 2 && currentDay >= 28) {
-                    try {
-                        const testDate = Lunar.fromYmd(currentYear, 2, 29);
-                        const solarDate = testDate.getSolar();
-                        const testSolarDate = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                        
-                        if (Lunar.fromDate(testSolarDate).getMonth() !== 2) {
-                            targetYear++;
-                        }
-                    } catch {
-                        targetYear++;
-                    }
-                }
-                
-                try {
-                    let targetLunar;
-                    let targetDay = 29;
-                    try {
-                        targetLunar = Lunar.fromYmd(targetYear, 2, 29);
-                        const solarDate = targetLunar.getSolar();
-                        const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                        
-                        const checkLunar = Lunar.fromDate(solarDateTime);
-                        if (checkLunar.getMonth() !== 2) {
-                            targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                            targetDay = 28;
-                        }
-                    } catch {
-                        targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                        targetDay = 28;
-                    }
-                    
-                    const solarDate = targetLunar.getSolar();
-                    const solarDateTime = new Date(solarDate.getYear(), solarDate.getMonth() - 1, solarDate.getDay());
-                    
-                    if (solarDateTime < now) {
-                        targetYear++;
-                        try {
-                            targetLunar = Lunar.fromYmd(targetYear, 2, 29);
-                            const nextSolar = targetLunar.getSolar();
-                            const nextDateTime = new Date(nextSolar.getYear(), nextSolar.getMonth() - 1, nextSolar.getDay());
-                            const checkNextLunar = Lunar.fromDate(nextDateTime);
-                            
-                            if (checkNextLunar.getMonth() === 2) {
-                                solarDateTime.setTime(nextDateTime.getTime());
-                                targetDay = 29;
-                            } else {
-                                targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                                const finalSolar = targetLunar.getSolar();
-                                solarDateTime.setFullYear(finalSolar.getYear());
-                                solarDateTime.setMonth(finalSolar.getMonth() - 1);
-                                solarDateTime.setDate(finalSolar.getDay());
-                                targetDay = 28;
-                            }
-                        } catch {
-                            targetLunar = Lunar.fromYmd(targetYear, 2, 28);
-                            const finalSolar = targetLunar.getSolar();
-                            solarDateTime.setFullYear(finalSolar.getYear());
-                            solarDateTime.setMonth(finalSolar.getMonth() - 1);
-                            solarDateTime.setDate(finalSolar.getDay());
-                            targetDay = 28;
-                        }
-                    }
-                    
-                    return {
-                        date: solarDateTime,
-                        year: targetLunar.getYearInChinese(),
-                        month: targetLunar.getMonthInChinese(),
-                        day: targetLunar.getDayInChinese(),
-                        solarYear: solarDateTime.getFullYear(),
-                        targetDay: targetDay
-                    };
-                } catch (error) {
-                    console.error('Error calculating lunar February special day:', error);
-                    const fallbackDate = new Date(targetYear, 1, 28);
-                    return {
-                        date: fallbackDate,
-                        year: targetYear.toString(),
-                        month: '二',
-                        day: '二十八',
-                        solarYear: targetYear,
-                        targetDay: 28
-                    };
-                }
-            }
-
+            // 使用全局定义的getNextLunarFebruarySpecialDay函数
             const lunarFebruaryInfo = getNextLunarFebruarySpecialDay();
             const secondsToLunarFebruary = TimeUtil.getSecondsTo(lunarFebruaryInfo.date);
             const [lunarFebDays, lunarFebHours, lunarFebMinutes, lunarFebSeconds] = TimeUtil.secondsToDHMS(secondsToLunarFebruary);
@@ -1852,7 +1605,8 @@ function updateStats() {
             progressBar.style.width = `${lunarFebruaryProgress}%`;
             progressText.textContent = `(${lunarFebruaryProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('mid-autumn')) {
-            const midAutumnDay = getNextLunarFestival(8, 15);
+            const midAutumnConfig = ConfigUtil.getLunarHoliday('midAutumn');
+            const midAutumnDay = getNextLunarFestival(midAutumnConfig.month, midAutumnConfig.day);
             const secondsToMidAutumn = TimeUtil.getSecondsTo(midAutumnDay);
             const [midAutumnDays, midAutumnHours, midAutumnMinutes, midAutumnSeconds] = TimeUtil.secondsToDHMS(secondsToMidAutumn);
             const midAutumnProgress = ProgressUtil.calculateFestival(midAutumnDay);
@@ -1864,7 +1618,8 @@ function updateStats() {
             progressBar.style.width = `${midAutumnProgress}%`;
             progressText.textContent = `(${midAutumnProgress.toFixed(1)}%)`;
         } else if (card.classList.contains('dragon-boat-festival')) {
-            const dragonBoatDay = getNextLunarFestival(5, 5);
+            const dragonBoatConfig = ConfigUtil.getLunarHoliday('dragonBoat');
+            const dragonBoatDay = getNextLunarFestival(dragonBoatConfig.month, dragonBoatConfig.day);
             const secondsToDragonBoat = TimeUtil.getSecondsTo(dragonBoatDay);
             const [dragonBoatDays, dragonBoatHours, dragonBoatMinutes, dragonBoatSeconds] = TimeUtil.secondsToDHMS(secondsToDragonBoat);
             const dragonBoatProgress = ProgressUtil.calculateFestival(dragonBoatDay);
@@ -1950,6 +1705,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.appendChild(ripple);
                 setTimeout(() => ripple.remove(), 600);
             });
+
         });
     }, 500);
 
@@ -2062,3 +1818,4 @@ function updateCountdown(targetDate, elementId) {
         }
     }
 }
+
