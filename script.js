@@ -36,6 +36,28 @@ const HOLIDAY_CONFIG = {
     fallback: {
         qingming: { month: 4, day: 5 },
         februaryLast: { month: 2, day: 28 }
+    },
+    
+    // 调班配置
+    workdays: {
+        '2025': {
+            // 调班工作日（原休息日调为工作日）
+            adjustedWorkdays: [
+                '2025-01-26', // 1月26日（周日）调为工作日
+                '2025-02-08', // 2月8日（周六）调为工作日
+                '2025-04-27', // 4月27日（周日）调为工作日
+                '2025-09-28', // 9月28日（周日）调为工作日
+                '2025-10-11'  // 10月11日（周六）调为工作日
+            ],
+            // 调班休息日（原工作日调为休息日）
+            adjustedRestdays: [
+                '2025-01-28', '2025-01-29', '2025-01-30', '2025-01-31',
+                '2025-02-01', '2025-02-02', '2025-02-03', '2025-02-04', // 春节
+                '2025-05-02', '2025-05-03', '2025-05-04', '2025-05-05', // 劳动节
+                '2025-10-02', '2025-10-03', '2025-10-04', '2025-10-05',
+                '2025-10-06', '2025-10-07', '2025-10-08' // 国庆节
+            ]
+        }
     }
 };
 
@@ -68,6 +90,35 @@ const ConfigUtil = {
     // 获取工作时间配置
     getWorkHours() {
         return this.getBusinessConfig('workHours');
+    },
+    
+    // 获取调班配置
+    getWorkdaysConfig(year) {
+        return HOLIDAY_CONFIG.workdays[year] || { adjustedWorkdays: [], adjustedRestdays: [] };
+    },
+    
+    // 判断是否为调班工作日
+    isAdjustedWorkday(date) {
+        const year = date.getFullYear().toString();
+        const dateStr = this.formatDate(date);
+        const config = this.getWorkdaysConfig(year);
+        return config.adjustedWorkdays.includes(dateStr);
+    },
+    
+    // 判断是否为调班休息日
+    isAdjustedRestday(date) {
+        const year = date.getFullYear().toString();
+        const dateStr = this.formatDate(date);
+        const config = this.getWorkdaysConfig(year);
+        return config.adjustedRestdays.includes(dateStr);
+    },
+    
+    // 格式化日期为YYYY-MM-DD
+    formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 };
 
@@ -398,9 +449,27 @@ function getNextLunarFebruarySpecialDay() {
 function calculateTimeToOffWork() {
     const now = new Date();
     const today = now.getDay();
+    const dateStr = ConfigUtil.formatDate(now);
     
-    // 如果是周末，返回0
-    if (today === 0 || today === 6) {
+    // 检查是否为调班工作日
+    const isAdjustedWorkday = ConfigUtil.isAdjustedWorkday(now);
+    const isAdjustedRestday = ConfigUtil.isAdjustedRestday(now);
+    
+    let isWorkday;
+    
+    if (isAdjustedWorkday) {
+        // 调班工作日（原休息日调为工作日）
+        isWorkday = true;
+    } else if (isAdjustedRestday) {
+        // 调班休息日（原工作日调为休息日）
+        isWorkday = false;
+    } else {
+        // 默认逻辑：周一到周五为工作日，周六周日为休息日
+        isWorkday = today >= 1 && today <= 5;
+    }
+    
+    // 如果不是工作日，返回0
+    if (!isWorkday) {
         return 0;
     }
     
@@ -939,8 +1008,20 @@ function calculateWorkStats(now) {
 function calculateOffWorkData(now) {
     const secondsToOffWork = calculateTimeToOffWork();
     const offWorkProgress = calculateOffWorkProgress();
-    const today = now.getDay();
-    const isWeekend = today === 0 || today === 6; // 0=周日, 6=周六
+    
+    // 使用调班配置判断是否为工作日
+    const isAdjustedWorkday = ConfigUtil.isAdjustedWorkday(now);
+    const isAdjustedRestday = ConfigUtil.isAdjustedRestday(now);
+    
+    let isWorkday;
+    if (isAdjustedWorkday) {
+        isWorkday = true;
+    } else if (isAdjustedRestday) {
+        isWorkday = false;
+    } else {
+        const today = now.getDay();
+        isWorkday = today >= 1 && today <= 5;
+    }
     
     let detail;
     if (secondsToOffWork === -1) {
@@ -955,9 +1036,13 @@ function calculateOffWorkData(now) {
         
         detail = `距离上班还有 ${workTotalHours} 小时 ${workMinutes} 分钟 ${workSeconds} 秒`;
     } else if (secondsToOffWork === 0) {
-        // 已下班 (17:00 - 24:00) 或周末
-        if (isWeekend) {
-            detail = "今天是周末，请好好休息。";
+        // 已下班 (17:00 - 24:00) 或非工作日
+        if (!isWorkday) {
+            if (isAdjustedRestday) {
+                detail = "今天是调班休息日，请好好休息。";
+            } else {
+                detail = "今天是周末，请好好休息。";
+            }
         } else {
             detail = "今日已下班，请好好休息";
         }
