@@ -937,31 +937,75 @@ function calculateWorkStats(now) {
 // 计算下班数据
 function calculateOffWorkData(now) {
     const secondsToOffWork = calculateTimeToOffWork();
-    const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(Math.abs(secondsToOffWork));
-    const totalHours = days * 24 + hours;
     const offWorkProgress = calculateOffWorkProgress();
+    const today = now.getDay();
+    const isWeekend = today === 0 || today === 6; // 0=周日, 6=周六
     
     let detail;
     if (secondsToOffWork === -1) {
-        // 还未到上班时间 (0:00 - 8:30)
-        detail = "还未到上班时间";
+        // 还未到上班时间 (0:00 - 8:30)，显示距离上班时间
+        const workHours = ConfigUtil.getWorkHours();
+        const workStart = new Date(now);
+        workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
+        
+        const secondsToWorkStart = Math.floor((workStart - now) / 1000);
+        const [workDays, workHours2, workMinutes, workSeconds] = TimeUtil.secondsToDHMS(secondsToWorkStart);
+        const workTotalHours = workDays * 24 + workHours2;
+        
+        detail = `距离上班还有 ${workTotalHours} 小时 ${workMinutes} 分钟 ${workSeconds} 秒`;
     } else if (secondsToOffWork === 0) {
-        // 已下班 (17:00 - 24:00)
-        detail = "今日已下班，请好好休息";
+        // 已下班 (17:00 - 24:00) 或周末
+        if (isWeekend) {
+            detail = "今天是周末，请好好休息。";
+        } else {
+            detail = "今日已下班，请好好休息";
+        }
     } else {
-        // 上班时间内 (8:30 - 17:00)
+        // 上班时间内 (8:30 - 17:00)，显示距离下班时间
+        const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
+        const totalHours = days * 24 + hours;
+        
         detail = `还剩 ${totalHours} 小时 ${minutes} 分钟 ${seconds} 秒`;
     }
     
-    return {
+    // 计算返回数据
+    let returnData = {
         seconds: secondsToOffWork,
-        days,
-        hours: totalHours,
-        minutes,
-        seconds2: seconds,
         progress: offWorkProgress,
         detail
     };
+    
+    if (secondsToOffWork === -1) {
+        // 还未到上班时间
+        const workHours = ConfigUtil.getWorkHours();
+        const workStart = new Date(now);
+        workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
+        const secondsToWorkStart = Math.floor((workStart - now) / 1000);
+        const [workDays, workHours2, workMinutes, workSeconds] = TimeUtil.secondsToDHMS(secondsToWorkStart);
+        const workTotalHours = workDays * 24 + workHours2;
+        
+        returnData.days = workDays;
+        returnData.hours = workTotalHours;
+        returnData.minutes = workMinutes;
+        returnData.seconds2 = workSeconds;
+    } else if (secondsToOffWork === 0) {
+        // 已下班
+        returnData.days = 0;
+        returnData.hours = 0;
+        returnData.minutes = 0;
+        returnData.seconds2 = 0;
+    } else {
+        // 上班时间内
+        const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
+        const totalHours = days * 24 + hours;
+        
+        returnData.days = days;
+        returnData.hours = totalHours;
+        returnData.minutes = minutes;
+        returnData.seconds2 = seconds;
+    }
+    
+    return returnData;
 }
 
 // 计算工资数据
