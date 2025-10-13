@@ -1172,6 +1172,23 @@ function calculateSalaryData(now) {
     const today = now.getDate();
     const salaryDay = ConfigUtil.getBusinessConfig('salaryDay');
     
+    // 检查是否为发薪日当天
+    if (today === salaryDay) {
+        return {
+            status: 'salary_day',
+            date: new Date(now.getFullYear(), now.getMonth(), salaryDay),
+            seconds: 0,
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds2: 0,
+            progress: 100,
+            detail: '今日为发薪日',
+            targetTime: '发薪日: 今天'
+        };
+    }
+    
+    // 计算下一个发薪日
     const nextSalaryDate = new Date(now);
     if (today < salaryDay) {
         // 本月还没到发薪日
@@ -1182,14 +1199,15 @@ function calculateSalaryData(now) {
         nextSalaryDate.setDate(salaryDay);
     }
     
-    // 设置发薪时间为17:00（下班时间）
-    nextSalaryDate.setHours(17, 0, 0, 0);
+    // 设置发薪时间为0:00:00（全天有效）
+    nextSalaryDate.setHours(0, 0, 0, 0);
     
     const secondsToSalary = TimeUtil.getSecondsTo(nextSalaryDate);
     const [salaryDays, salaryHours, salaryMinutes, salarySeconds] = TimeUtil.secondsToDHMS(secondsToSalary);
     const salaryProgress = ProgressUtil.calculateFestival(nextSalaryDate);
     
     return {
+        status: 'salary_countdown',
         date: nextSalaryDate,
         seconds: secondsToSalary,
         days: salaryDays,
@@ -1197,7 +1215,8 @@ function calculateSalaryData(now) {
         minutes: salaryMinutes,
         seconds2: salarySeconds,
         progress: salaryProgress,
-        detail: `还剩 ${salaryDays} 天 ${salaryHours} 小时 ${salaryMinutes} 分钟 ${salarySeconds} 秒`
+        detail: `还剩 ${salaryDays} 天 ${salaryHours} 小时 ${salaryMinutes} 分钟 ${salarySeconds} 秒`,
+        targetTime: `发薪日: ${salaryDay}日`
     };
 }
 
@@ -1422,13 +1441,14 @@ function createWorkCards(workData) {
             nextEvent: workData.offWork.nextEvent
         },
         {
-            title: '距离下一个发薪日',
+            title: workData.salary.status === 'salary_day' ? '今日发薪日' : '距离下一个发薪日',
             detail: workData.salary.detail,
             percent: workData.salary.progress,
-            className: 'salary',
+            className: `salary ${workData.salary.status}`,
             type: 'countdown',
-            secondsToTarget: workData.salary.seconds,
-            targetDate: workData.salary.date
+            secondsToTarget: workData.salary.seconds <= 0 ? Infinity : workData.salary.seconds,
+            targetTime: workData.salary.targetTime,
+            status: workData.salary.status
         }
     ];
 }
@@ -1517,7 +1537,10 @@ function renderAllCards(sortedCards, container) {
                     targetTime = card.targetTime || '下班时间: 17:00';
                     break;
                 case 'salary':
-                    targetTime = `发薪日: ${day}日`;
+                case 'salary salary_day':
+                case 'salary salary_countdown':
+                    // 这些情况已经在calculateSalaryData中设置了targetTime
+                    targetTime = card.targetTime || `发薪日: ${day}日`;
                     break;
                 case 'spring-festival':
                     targetTime = `春节: ${month}月${day}日`;
@@ -1748,6 +1771,22 @@ function updateOffWorkCard(card, now) {
 // 更新工资卡片
 function updateSalaryCard(card, now) {
     const data = calculateSalaryData(now);
+    
+    // 更新卡片标题
+    const titleElement = card.querySelector('.stat-header');
+    if (titleElement) {
+        titleElement.textContent = data.status === 'salary_day' ? '今日发薪日' : '距离下一个发薪日';
+    }
+    
+    // 更新卡片类名以反映当前状态
+    card.className = `stat-item salary ${data.status}`;
+    
+    // 更新目标时间
+    const targetTimeElement = card.querySelector('.target-time');
+    if (targetTimeElement) {
+        targetTimeElement.textContent = data.targetTime;
+    }
+    
     updateCardElements(card, data.detail, data.progress);
     updateProgressEffects(card, data.progress);
 }

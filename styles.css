@@ -388,8 +388,31 @@ h1 {
 }
 
 .stat-item.salary {
-    --stat-color: #55bb8a;  /* 金色 */
+    --stat-color: #55bb8a;  /* 绿色 */
     background-color: rgba(85, 187, 138, 0.1);
+}
+
+/* 发薪日当天特殊样式 */
+.stat-item.salary.salary_day {
+    --stat-color: #FFD700;  /* 金色表示发薪日 */
+    background-color: rgba(255, 215, 0, 0.2);
+    animation: salary-glow 2s ease-in-out infinite alternate;
+}
+
+/* 发薪日倒计时样式 */
+.stat-item.salary.salary_countdown {
+    --stat-color: #55bb8a;  /* 保持原有绿色 */
+    background-color: rgba(85, 187, 138, 0.1);
+}
+
+/* 发薪日发光动画 */
+@keyframes salary-glow {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
 }
 
 .stat-item.children-day {
