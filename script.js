@@ -28,6 +28,8 @@ const HOLIDAY_CONFIG = {
         salaryDay: 15,
         workHours: { 
             start: { hour: 8, minute: 30 }, 
+            lunchStart: { hour: 12, minute: 0 },
+            lunchEnd: { hour: 13, minute: 30 },
             end: { hour: 17, minute: 0 } 
         }
     },
@@ -445,8 +447,8 @@ function getNextLunarFebruarySpecialDay() {
 
 
 
-// 计算距离下班的时间（返回秒数）
-function calculateTimeToOffWork() {
+// 计算工作状态和时间（返回状态对象）
+function calculateWorkStatus() {
     const now = new Date();
     const today = now.getDay();
     const dateStr = ConfigUtil.formatDate(now);
@@ -468,64 +470,128 @@ function calculateTimeToOffWork() {
         isWorkday = today >= 1 && today <= 5;
     }
     
-    // 如果不是工作日，返回0
+    // 如果不是工作日，返回休息状态
     if (!isWorkday) {
-        return 0;
+        return {
+            status: 'rest',
+            seconds: 0,
+            nextEvent: null,
+            progress: 100,
+            isWorkday: false
+        };
     }
     
-    // 设置今天的上下班时间
+    // 设置工作时间
     const workHours = ConfigUtil.getWorkHours();
     const workStart = new Date(now);
     workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
+    const lunchStart = new Date(now);
+    lunchStart.setHours(workHours.lunchStart.hour, workHours.lunchStart.minute, 0, 0);
+    const lunchEnd = new Date(now);
+    lunchEnd.setHours(workHours.lunchEnd.hour, workHours.lunchEnd.minute, 0, 0);
     const workEnd = new Date(now);
     workEnd.setHours(workHours.end.hour, workHours.end.minute, 0, 0);
     
-    // 如果未到上班时间，返回-1表示未上班
+    // 状态1：未到上班时间 (0:00 - 8:30)
     if (now < workStart) {
-        return -1;
+        const secondsToWork = Math.floor((workStart - now) / 1000);
+        return {
+            status: 'not_started',
+            seconds: secondsToWork,
+            nextEvent: 'work',
+            progress: 0,
+            isWorkday: true
+        };
     }
     
-    // 如果已过下班时间，返回0表示已下班
-    if (now >= workEnd) {
-        return 0;
+    // 状态2：上午工作时间 (8:30 - 12:00)
+    if (now >= workStart && now < lunchStart) {
+        const secondsToLunch = Math.floor((lunchStart - now) / 1000);
+        return {
+            status: 'morning',
+            seconds: secondsToLunch,
+            nextEvent: 'lunch',
+            progress: 0, // 将在进度计算中更新
+            isWorkday: true
+        };
     }
     
-    // 计算距离下班还有多少秒
-    const remainingSeconds = Math.floor((workEnd - now) / 1000);
-    return remainingSeconds;
+    // 状态3：午休时间 (12:00 - 13:30)
+    if (now >= lunchStart && now < lunchEnd) {
+        const secondsToWork = Math.floor((lunchEnd - now) / 1000);
+        return {
+            status: 'lunch',
+            seconds: secondsToWork,
+            nextEvent: 'work',
+            progress: 50, // 午休期间进度保持50%
+            isWorkday: true
+        };
+    }
+    
+    // 状态4：下午工作时间 (13:30 - 17:00)
+    if (now >= lunchEnd && now < workEnd) {
+        const secondsToOffWork = Math.floor((workEnd - now) / 1000);
+        return {
+            status: 'afternoon',
+            seconds: secondsToOffWork,
+            nextEvent: 'off',
+            progress: 50, // 将在进度计算中更新
+            isWorkday: true
+        };
+    }
+    
+    // 状态5：已下班 (17:00 - 24:00)
+    return {
+        status: 'off',
+        seconds: 0,
+        nextEvent: null,
+        progress: 100,
+        isWorkday: true
+    };
 }
 
-// 计算下班倒计时进度
-function calculateOffWorkProgress() {
+// 计算工作进度（分段进度）
+function calculateWorkProgress(workStatus) {
     const now = new Date();
-    const today = now.getDay();
-    
-    // 如果是周末，进度为100%
-    if (today === 0 || today === 6) {
-        return 100;
-    }
-    
-    // 工作日的起止时间
     const workHours = ConfigUtil.getWorkHours();
+    
+    // 设置时间点
     const workStart = new Date(now);
     workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
+    const lunchStart = new Date(now);
+    lunchStart.setHours(workHours.lunchStart.hour, workHours.lunchStart.minute, 0, 0);
+    const lunchEnd = new Date(now);
+    lunchEnd.setHours(workHours.lunchEnd.hour, workHours.lunchEnd.minute, 0, 0);
     const workEnd = new Date(now);
     workEnd.setHours(workHours.end.hour, workHours.end.minute, 0, 0);
     
-    // 如果未到上班时间，进度为0
-    if (now < workStart) {
-        return 0;
+    switch (workStatus.status) {
+        case 'not_started':
+            return 0;
+            
+        case 'morning':
+            // 上午进度：0% - 50%
+            const morningTotalMinutes = TimeUtil.getElapsedMinutes(workStart, lunchStart);
+            const morningElapsedMinutes = TimeUtil.getElapsedMinutes(workStart, now);
+            return (morningElapsedMinutes / morningTotalMinutes) * 50;
+            
+        case 'lunch':
+            // 午休期间保持50%
+            return 50;
+            
+        case 'afternoon':
+            // 下午进度：50% - 100%
+            const afternoonTotalMinutes = TimeUtil.getElapsedMinutes(lunchEnd, workEnd);
+            const afternoonElapsedMinutes = TimeUtil.getElapsedMinutes(lunchEnd, now);
+            return 50 + (afternoonElapsedMinutes / afternoonTotalMinutes) * 50;
+            
+        case 'off':
+        case 'rest':
+            return 100;
+            
+        default:
+            return 0;
     }
-    
-    // 如果已过下班时间，进度为100
-    if (now >= workEnd) {
-        return 100;
-    }
-    
-    // 计算工作日进度
-    const totalMinutes = TimeUtil.getElapsedMinutes(workStart, workEnd);
-    const elapsedMinutes = TimeUtil.getElapsedMinutes(workStart, now);
-    return (elapsedMinutes / totalMinutes) * 100;
 }
 
 // 格式化时间的辅助函数
@@ -1006,89 +1072,96 @@ function calculateWorkStats(now) {
 
 // 计算下班数据
 function calculateOffWorkData(now) {
-    const secondsToOffWork = calculateTimeToOffWork();
-    const offWorkProgress = calculateOffWorkProgress();
+    const workStatus = calculateWorkStatus();
+    const progress = calculateWorkProgress(workStatus);
     
-    // 使用调班配置判断是否为工作日
-    const isAdjustedWorkday = ConfigUtil.isAdjustedWorkday(now);
-    const isAdjustedRestday = ConfigUtil.isAdjustedRestday(now);
+    let detail, title, targetTime;
     
-    let isWorkday;
-    if (isAdjustedWorkday) {
-        isWorkday = true;
-    } else if (isAdjustedRestday) {
-        isWorkday = false;
-    } else {
-        const today = now.getDay();
-        isWorkday = today >= 1 && today <= 5;
-    }
-    
-    let detail;
-    if (secondsToOffWork === -1) {
-        // 还未到上班时间 (0:00 - 8:30)，显示距离上班时间
-        const workHours = ConfigUtil.getWorkHours();
-        const workStart = new Date(now);
-        workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
-        
-        const secondsToWorkStart = Math.floor((workStart - now) / 1000);
-        const [workDays, workHours2, workMinutes, workSeconds] = TimeUtil.secondsToDHMS(secondsToWorkStart);
-        const workTotalHours = workDays * 24 + workHours2;
-        
-        detail = `距离上班还有 ${workTotalHours} 小时 ${workMinutes} 分钟 ${workSeconds} 秒`;
-    } else if (secondsToOffWork === 0) {
-        // 已下班 (17:00 - 24:00) 或非工作日
-        if (!isWorkday) {
-            if (isAdjustedRestday) {
-                detail = "今天是调班休息日，请好好休息。";
+    switch (workStatus.status) {
+        case 'not_started':
+            title = '距离上班';
+            const [workDays, workHours, workMinutes, workSeconds] = TimeUtil.secondsToDHMS(workStatus.seconds);
+            const workTotalHours = workDays * 24 + workHours;
+            detail = `距离上班还有 ${workTotalHours} 小时 ${workMinutes} 分钟 ${workSeconds} 秒`;
+            targetTime = '上班时间: 8:30';
+            break;
+            
+        case 'morning':
+            title = '距离午休';
+            const [lunchDays, lunchHours, lunchMinutes, lunchSeconds] = TimeUtil.secondsToDHMS(workStatus.seconds);
+            const lunchTotalHours = lunchDays * 24 + lunchHours;
+            detail = `距离午休还有 ${lunchTotalHours} 小时 ${lunchMinutes} 分钟 ${lunchSeconds} 秒`;
+            targetTime = '午休时间: 12:00';
+            break;
+            
+        case 'lunch':
+            title = '午休中';
+            const [workDays2, workHours2, workMinutes2, workSeconds2] = TimeUtil.secondsToDHMS(workStatus.seconds);
+            const workTotalHours2 = workDays2 * 24 + workHours2;
+            detail = `距离上班还有 ${workTotalHours2} 小时 ${workMinutes2} 分钟 ${workSeconds2} 秒`;
+            targetTime = '上班时间: 13:30';
+            break;
+            
+        case 'afternoon':
+            title = '距离下班';
+            const [offDays, offHours, offMinutes, offSeconds] = TimeUtil.secondsToDHMS(workStatus.seconds);
+            const offTotalHours = offDays * 24 + offHours;
+            detail = `距离下班还有 ${offTotalHours} 小时 ${offMinutes} 分钟 ${offSeconds} 秒`;
+            targetTime = '下班时间: 17:00';
+            break;
+            
+        case 'off':
+            title = '距离下班';
+            if (workStatus.isWorkday) {
+                detail = '今日已下班，请好好休息';
             } else {
-                detail = "今天是周末，请好好休息。";
+                detail = '今天是周末，请好好休息';
             }
-        } else {
-            detail = "今日已下班，请好好休息";
-        }
-    } else {
-        // 上班时间内 (8:30 - 17:00)，显示距离下班时间
-        const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
-        const totalHours = days * 24 + hours;
-        
-        detail = `还剩 ${totalHours} 小时 ${minutes} 分钟 ${seconds} 秒`;
+            targetTime = '下班时间: 17:00';
+            break;
+            
+        case 'rest':
+            title = '距离下班';
+            const isAdjustedRestday = ConfigUtil.isAdjustedRestday(now);
+            if (isAdjustedRestday) {
+                detail = '今天是调班休息日，请好好休息';
+            } else {
+                detail = '今天是周末，请好好休息';
+            }
+            targetTime = '下班时间: 17:00';
+            break;
+            
+        default:
+            title = '距离下班';
+            detail = '状态未知';
+            targetTime = '下班时间: 17:00';
     }
     
     // 计算返回数据
     let returnData = {
-        seconds: secondsToOffWork,
-        progress: offWorkProgress,
-        detail
+        title,
+        seconds: workStatus.seconds,
+        progress,
+        detail,
+        targetTime,
+        status: workStatus.status,
+        nextEvent: workStatus.nextEvent
     };
     
-    if (secondsToOffWork === -1) {
-        // 还未到上班时间
-        const workHours = ConfigUtil.getWorkHours();
-        const workStart = new Date(now);
-        workStart.setHours(workHours.start.hour, workHours.start.minute, 0, 0);
-        const secondsToWorkStart = Math.floor((workStart - now) / 1000);
-        const [workDays, workHours2, workMinutes, workSeconds] = TimeUtil.secondsToDHMS(secondsToWorkStart);
-        const workTotalHours = workDays * 24 + workHours2;
-        
-        returnData.days = workDays;
-        returnData.hours = workTotalHours;
-        returnData.minutes = workMinutes;
-        returnData.seconds2 = workSeconds;
-    } else if (secondsToOffWork === 0) {
-        // 已下班
-        returnData.days = 0;
-        returnData.hours = 0;
-        returnData.minutes = 0;
-        returnData.seconds2 = 0;
-    } else {
-        // 上班时间内
-        const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(secondsToOffWork);
+    // 添加时间分解数据
+    if (workStatus.seconds > 0) {
+        const [days, hours, minutes, seconds] = TimeUtil.secondsToDHMS(workStatus.seconds);
         const totalHours = days * 24 + hours;
         
         returnData.days = days;
         returnData.hours = totalHours;
         returnData.minutes = minutes;
         returnData.seconds2 = seconds;
+    } else {
+        returnData.days = 0;
+        returnData.hours = 0;
+        returnData.minutes = 0;
+        returnData.seconds2 = 0;
     }
     
     return returnData;
@@ -1338,13 +1411,15 @@ function createFestivalCards(festivalData) {
 function createWorkCards(workData) {
     return [
         {
-            title: '距离下班',
+            title: workData.offWork.title,
             detail: workData.offWork.detail,
             percent: workData.offWork.progress,
-            className: 'off-work',
+            className: `off-work ${workData.offWork.status}`, // 添加状态类名
             type: 'countdown',
             secondsToTarget: workData.offWork.seconds <= 0 ? Infinity : workData.offWork.seconds,
-            targetDate: new Date() // 设置一个日期对象，让渲染函数能识别并显示17:00
+            targetTime: workData.offWork.targetTime, // 使用新的targetTime字段
+            status: workData.offWork.status,
+            nextEvent: workData.offWork.nextEvent
         },
         {
             title: '距离下一个发薪日',
@@ -1420,15 +1495,26 @@ function renderAllCards(sortedCards, container) {
         // 格式化目标日期 - 根据卡片类型显示不同格式
         let targetTime = null;
         
-        if (card.type === 'countdown' && card.targetDate) {
-            const date = card.targetDate;
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            
-            // 根据卡片类型显示不同的格式
+        if (card.type === 'countdown') {
+            // 优先使用targetTime字段
+            if (card.targetTime) {
+                targetTime = card.targetTime;
+            } else if (card.targetDate) {
+                const date = card.targetDate;
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                
+                // 根据卡片类型显示不同的格式
                 switch (card.className) {
                 case 'off-work':
-                    targetTime = '下班时间: 17:00';
+                case 'off-work not_started':
+                case 'off-work morning':
+                case 'off-work lunch':
+                case 'off-work afternoon':
+                case 'off-work off':
+                case 'off-work rest':
+                    // 这些情况已经在calculateOffWorkData中设置了targetTime
+                    targetTime = card.targetTime || '下班时间: 17:00';
                     break;
                 case 'salary':
                     targetTime = `发薪日: ${day}日`;
@@ -1471,6 +1557,7 @@ function renderAllCards(sortedCards, container) {
                     break;
                 default:
                     targetTime = `${month}月${day}日`;
+                }
             }
         }
         
@@ -1638,6 +1725,22 @@ function updateChildrenCard(card, now) {
 // 更新下班卡片
 function updateOffWorkCard(card, now) {
     const data = calculateOffWorkData(now);
+    
+    // 更新卡片标题
+    const titleElement = card.querySelector('.stat-header');
+    if (titleElement) {
+        titleElement.textContent = data.title;
+    }
+    
+    // 更新卡片类名以反映当前状态
+    card.className = `stat-item off-work ${data.status}`;
+    
+    // 更新目标时间
+    const targetTimeElement = card.querySelector('.target-time');
+    if (targetTimeElement) {
+        targetTimeElement.textContent = data.targetTime;
+    }
+    
     updateCardElements(card, data.detail, data.progress);
     updateProgressEffects(card, data.progress);
 }

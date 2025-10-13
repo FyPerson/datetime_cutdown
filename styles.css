@@ -402,6 +402,42 @@ h1 {
     background-color: rgba(192, 72, 81, 0.1);
 }
 
+/* 午休期间特殊样式 */
+.stat-item.off-work.lunch {
+    --stat-color: #4CAF50;  /* 绿色表示休息 */
+    background-color: rgba(76, 175, 80, 0.15);
+}
+
+/* 上午工作时间样式 */
+.stat-item.off-work.morning {
+    --stat-color: #FF9800;  /* 橙色表示上午工作 */
+    background-color: rgba(255, 152, 0, 0.1);
+}
+
+/* 下午工作时间样式 */
+.stat-item.off-work.afternoon {
+    --stat-color: #2196F3;  /* 蓝色表示下午工作 */
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+/* 未上班状态样式 */
+.stat-item.off-work.not_started {
+    --stat-color: #9E9E9E;  /* 灰色表示未开始 */
+    background-color: rgba(158, 158, 158, 0.1);
+}
+
+/* 已下班状态样式 */
+.stat-item.off-work.off {
+    --stat-color: #607D8B;  /* 深灰色表示已下班 */
+    background-color: rgba(96, 125, 139, 0.1);
+}
+
+/* 休息日状态样式 */
+.stat-item.off-work.rest {
+    --stat-color: #795548;  /* 棕色表示休息日 */
+    background-color: rgba(121, 85, 72, 0.1);
+}
+
 .stat-item.february-last-day {
     --stat-color: #4a90e2;
     background-color: rgba(74, 144, 226, 0.1);
