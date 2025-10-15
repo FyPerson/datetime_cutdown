@@ -994,6 +994,45 @@ main.hidden {
     padding: 10px 0;
 }
 
+/* 导航按钮样式 */
+.header-nav {
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    z-index: 1000;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.weather-link, .back-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--card-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.weather-link:hover, .back-link:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.weather-link i, .back-link i {
+    font-size: 1.1rem;
+}
+
 .solar-date, .lunar-date {
     width: 100%;
     display: flex;

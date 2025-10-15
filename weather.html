@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <meta name="description" content="实时天气信息 - 查看当前天气状况">
+    
+    <!-- Open Graph 元数据 -->
+    <meta property="og:title" content="实时天气">
+    <meta property="og:description" content="查看当前天气状况和详细信息">
+    <meta property="og:image" content="/weather-preview.jpg">
+    
+    <title>实时天气 - 倒计时清单</title>
+    
+    <!-- 合并字体资源请求 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="preload" href="./weather.js" as="script">
+    
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./weather.css">
+    
+    <!-- 添加 DNS 预连接 -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+</head>
+<body>
+    <header>
+        <nav class="header-nav" aria-label="导航菜单">
+            <div class="nav-buttons">
+                <a href="index.html" class="back-link" aria-label="返回首页">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                    <span>返回</span>
+                </a>
+                <button id="theme-toggle" aria-label="切换主题" role="switch">
+                    <i class="fas fa-sun light-icon" aria-hidden="true"></i>
+                    <i class="fas fa-moon dark-icon" aria-hidden="true"></i>
+                    <span class="theme-text">切换主题</span>
+                </button>
+            </div>
+        </nav>
+        <h1>
+            <i class="fas fa-cloud-sun" aria-hidden="true"></i>
+            <span>实时天气</span>
+        </h1>
+    </header>
+
+    <!-- 加载状态 -->
+    <div id="loading-state" aria-live="polite" class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span class="loading-text">正在获取天气数据...</span>
+    </div>
+
+    <main>
+        <div class="weather-container">
+            <!-- 主要天气信息 -->
+            <section class="weather-main" id="weather-main">
+                <div class="weather-location">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                    <span id="city-name">--</span>
+                </div>
+                <div class="weather-temp">
+                    <span id="temperature">--</span>
+                    <span class="temp-unit">°C</span>
+                </div>
+                <div class="weather-desc">
+                    <i class="fas fa-cloud" id="weather-icon" aria-hidden="true"></i>
+                    <span id="weather-text">--</span>
+                </div>
+            </section>
+
+            <!-- 详细信息 -->
+            <section class="weather-details" id="weather-details">
+                <div class="detail-item">
+                    <i class="fas fa-tint" aria-hidden="true"></i>
+                    <div class="detail-content">
+                        <span class="detail-label">湿度</span>
+                        <span class="detail-value" id="humidity">--</span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-wind" aria-hidden="true"></i>
+                    <div class="detail-content">
+                        <span class="detail-label">风向</span>
+                        <span class="detail-value" id="wind-dir">--</span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                    <div class="detail-content">
+                        <span class="detail-label">能见度</span>
+                        <span class="detail-value" id="visibility">--</span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-thermometer-half" aria-hidden="true"></i>
+                    <div class="detail-content">
+                        <span class="detail-label">体感温度</span>
+                        <span class="detail-value" id="feels-like">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 更新时间 -->
+            <section class="weather-update">
+                <div class="update-time">
+                    <i class="fas fa-clock" aria-hidden="true"></i>
+                    <span>最后更新: </span>
+                    <span id="update-time">--</span>
+                </div>
+                <button id="refresh-btn" class="refresh-btn" aria-label="刷新天气数据">
+                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                    <span>刷新</span>
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <!-- 错误提示 -->
+    <div id="error-message" class="error-message" style="display: none;">
+        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+        <span id="error-text">获取天气数据失败，请稍后重试</span>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="./weather.js" defer></script>
+</body>
+</html>
