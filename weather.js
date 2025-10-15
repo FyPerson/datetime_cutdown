@@ -6,6 +6,17 @@ class WeatherApp {
         this.errorMessage = document.getElementById('error-message');
         this.refreshBtn = document.getElementById('refresh-btn');
         
+        // 检查关键DOM元素是否存在
+        if (!this.loadingState) {
+            console.error('loading-state 元素未找到');
+        }
+        if (!this.errorMessage) {
+            console.error('error-message 元素未找到');
+        }
+        if (!this.refreshBtn) {
+            console.error('refresh-btn 元素未找到');
+        }
+        
         this.init();
     }
 
@@ -17,9 +28,11 @@ class WeatherApp {
 
     setupEventListeners() {
         // 刷新按钮事件
-        this.refreshBtn.addEventListener('click', () => {
-            this.loadWeatherData();
-        });
+        if (this.refreshBtn) {
+            this.refreshBtn.addEventListener('click', () => {
+                this.loadWeatherData();
+            });
+        }
 
         // 键盘快捷键支持
         document.addEventListener('keydown', (e) => {
@@ -53,13 +66,13 @@ class WeatherApp {
         const themeText = document.querySelector('.theme-text');
         
         if (newTheme === 'dark') {
-            lightIcon.style.display = 'none';
-            darkIcon.style.display = 'inline';
-            themeText.textContent = '切换主题';
+            if (lightIcon) lightIcon.style.display = 'none';
+            if (darkIcon) darkIcon.style.display = 'inline';
+            if (themeText) themeText.textContent = '切换主题';
         } else {
-            lightIcon.style.display = 'inline';
-            darkIcon.style.display = 'none';
-            themeText.textContent = '切换主题';
+            if (lightIcon) lightIcon.style.display = 'inline';
+            if (darkIcon) darkIcon.style.display = 'none';
+            if (themeText) themeText.textContent = '切换主题';
         }
     }
 
@@ -119,25 +132,38 @@ class WeatherApp {
 
     updateWeatherDisplay(data) {
         // 更新主要信息
-        document.getElementById('city-name').textContent = data.city || '--';
-        document.getElementById('temperature').textContent = data.temperature || '--';
-        document.getElementById('weather-text').textContent = data.weather || '--';
-
-        // 更新详细信息
-        document.getElementById('humidity').textContent = data.humidity ? `${data.humidity}%` : '--';
-        document.getElementById('wind-dir').textContent = data.windDir || '--';
+        const cityName = document.getElementById('city-name');
+        const temperature = document.getElementById('temperature');
+        const weatherText = document.getElementById('weather-text');
+        const humidity = document.getElementById('humidity');
+        const windDir = document.getElementById('wind-dir');
+        
+        if (cityName) cityName.textContent = data.city || '--';
+        if (temperature) temperature.textContent = data.temperature || '--';
+        if (weatherText) weatherText.textContent = data.weather || '--';
+        if (humidity) humidity.textContent = data.humidity ? `${data.humidity}%` : '--';
+        if (windDir) windDir.textContent = data.windDir || '--';
         
         // 更新天气图标
         this.updateWeatherIcon(data.weather);
 
         // 显示主要天气信息区域
-        document.getElementById('weather-main').style.display = 'block';
-        document.getElementById('weather-details').style.display = 'grid';
-        document.getElementById('weather-update').style.display = 'flex';
+        const weatherMain = document.getElementById('weather-main');
+        const weatherDetails = document.getElementById('weather-details');
+        const weatherUpdate = document.getElementById('weather-update');
+        
+        if (weatherMain) weatherMain.style.display = 'block';
+        if (weatherDetails) weatherDetails.style.display = 'grid';
+        if (weatherUpdate) weatherUpdate.style.display = 'flex';
     }
 
     updateWeatherIcon(weatherText) {
         const iconElement = document.getElementById('weather-icon');
+        if (!iconElement) {
+            console.warn('weather-icon 元素未找到');
+            return;
+        }
+        
         const weatherClass = this.getWeatherIconClass(weatherText);
         
         // 移除所有天气相关的类
@@ -178,33 +204,59 @@ class WeatherApp {
             second: '2-digit'
         });
         
-        document.getElementById('update-time').textContent = timeString;
+        const updateTimeElement = document.getElementById('update-time');
+        if (updateTimeElement) {
+            updateTimeElement.textContent = timeString;
+        } else {
+            console.warn('update-time 元素未找到');
+        }
     }
 
     showLoading() {
-        this.loadingState.style.display = 'block';
-        this.refreshBtn.disabled = true;
-        this.refreshBtn.querySelector('i').classList.add('fa-spin');
+        if (this.loadingState) {
+            this.loadingState.style.display = 'block';
+        }
+        if (this.refreshBtn) {
+            this.refreshBtn.disabled = true;
+            const icon = this.refreshBtn.querySelector('i');
+            if (icon) {
+                icon.classList.add('fa-spin');
+            }
+        }
     }
 
     hideLoading() {
-        this.loadingState.style.display = 'none';
-        this.refreshBtn.disabled = false;
-        this.refreshBtn.querySelector('i').classList.remove('fa-spin');
+        if (this.loadingState) {
+            this.loadingState.style.display = 'none';
+        }
+        if (this.refreshBtn) {
+            this.refreshBtn.disabled = false;
+            const icon = this.refreshBtn.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-spin');
+            }
+        }
     }
 
     showError(message) {
-        this.errorMessage.querySelector('#error-text').textContent = message;
-        this.errorMessage.style.display = 'flex';
-        
-        // 3秒后自动隐藏错误消息
-        setTimeout(() => {
-            this.hideError();
-        }, 5000);
+        if (this.errorMessage) {
+            const errorText = this.errorMessage.querySelector('#error-text');
+            if (errorText) {
+                errorText.textContent = message;
+            }
+            this.errorMessage.style.display = 'flex';
+            
+            // 3秒后自动隐藏错误消息
+            setTimeout(() => {
+                this.hideError();
+            }, 5000);
+        }
     }
 
     hideError() {
-        this.errorMessage.style.display = 'none';
+        if (this.errorMessage) {
+            this.errorMessage.style.display = 'none';
+        }
     }
 
     // 自动刷新功能（可选）
