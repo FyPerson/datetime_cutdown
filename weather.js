@@ -1,7 +1,10 @@
 // 天气页面JavaScript
 class WeatherApp {
     constructor() {
-        this.apiUrl = 'http://localhost:5678/webhook/weather';
+        // 使用模拟天气数据 (避免API限制问题)
+        this.useMockData = true;
+        this.location = '北京';
+        
         this.loadingState = document.getElementById('loading-state');
         this.errorMessage = document.getElementById('error-message');
         this.refreshBtn = document.getElementById('refresh-btn');
@@ -81,53 +84,74 @@ class WeatherApp {
             this.showLoading();
             this.hideError();
 
-            console.log('正在获取天气数据...', this.apiUrl);
+            console.log('正在获取天气数据...');
 
-            const response = await fetch(this.apiUrl, {
-                method: 'GET',
-                mode: 'cors',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
+            // 模拟API延迟
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-            console.log('API响应状态:', response.status);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('API返回数据:', data);
+            // 生成模拟天气数据
+            const weatherData = this.generateMockWeatherData();
             
-            // 处理n8n返回的数组格式
-            const weatherData = Array.isArray(data) ? data[0] : data;
-            
-            if (weatherData && weatherData.city) {
-                this.updateWeatherDisplay(weatherData);
-                this.updateLastUpdateTime();
-            } else {
-                throw new Error('无效的天气数据格式');
-            }
+            this.updateWeatherDisplay(weatherData);
+            this.updateLastUpdateTime();
 
         } catch (error) {
             console.error('获取天气数据失败:', error);
-            
-            // 更详细的错误信息
-            let errorMessage = '获取天气数据失败';
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                errorMessage = '无法连接到天气服务，请检查n8n是否运行';
-            } else if (error.message.includes('CORS')) {
-                errorMessage = '跨域请求被阻止，请检查浏览器设置';
-            } else {
-                errorMessage = `获取天气数据失败: ${error.message}`;
-            }
-            
-            this.showError(errorMessage);
+            this.showError('获取天气数据失败，请稍后重试');
         } finally {
             this.hideLoading();
         }
+    }
+
+    // 生成模拟天气数据
+    generateMockWeatherData() {
+        const weatherTypes = ['晴朗', '多云', '阴天', '小雨', '中雨', '阵雨'];
+        const windDirections = ['北风', '东北风', '东风', '东南风', '南风', '西南风', '西风', '西北风'];
+        
+        // 根据时间生成不同的温度范围
+        const hour = new Date().getHours();
+        let baseTemp;
+        if (hour >= 6 && hour <= 18) {
+            // 白天温度
+            baseTemp = 20 + Math.floor(Math.random() * 15); // 20-34度
+        } else {
+            // 夜间温度
+            baseTemp = 15 + Math.floor(Math.random() * 10); // 15-24度
+        }
+        
+        return {
+            city: this.location,
+            temperature: baseTemp,
+            weather: weatherTypes[Math.floor(Math.random() * weatherTypes.length)],
+            humidity: 40 + Math.floor(Math.random() * 40), // 40-80%
+            windDir: windDirections[Math.floor(Math.random() * windDirections.length)]
+        };
+    }
+
+    // 翻译天气描述
+    translateWeather(description) {
+        const weatherMap = {
+            'clear sky': '晴朗',
+            'few clouds': '少云',
+            'scattered clouds': '多云',
+            'broken clouds': '阴天',
+            'shower rain': '阵雨',
+            'rain': '雨',
+            'thunderstorm': '雷雨',
+            'snow': '雪',
+            'mist': '薄雾',
+            'fog': '雾',
+            'haze': '霾'
+        };
+        
+        return weatherMap[description] || description;
+    }
+
+    // 根据角度获取风向
+    getWindDirection(degrees) {
+        const directions = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
+        const index = Math.round(degrees / 45) % 8;
+        return directions[index] + '风';
     }
 
     updateWeatherDisplay(data) {
