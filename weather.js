@@ -68,33 +68,50 @@ class WeatherApp {
             this.showLoading();
             this.hideError();
 
+            console.log('正在获取天气数据...', this.apiUrl);
+
             const response = await fetch(this.apiUrl, {
                 method: 'GET',
+                mode: 'cors',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
             });
 
+            console.log('API响应状态:', response.status);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('API返回数据:', data);
             
             // 处理n8n返回的数组格式
             const weatherData = Array.isArray(data) ? data[0] : data;
             
-            if (weatherData) {
+            if (weatherData && weatherData.city) {
                 this.updateWeatherDisplay(weatherData);
                 this.updateLastUpdateTime();
             } else {
-                throw new Error('无效的天气数据');
+                throw new Error('无效的天气数据格式');
             }
 
         } catch (error) {
             console.error('获取天气数据失败:', error);
-            this.showError('获取天气数据失败，请检查网络连接或稍后重试');
+            
+            // 更详细的错误信息
+            let errorMessage = '获取天气数据失败';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = '无法连接到天气服务，请检查n8n是否运行';
+            } else if (error.message.includes('CORS')) {
+                errorMessage = '跨域请求被阻止，请检查浏览器设置';
+            } else {
+                errorMessage = `获取天气数据失败: ${error.message}`;
+            }
+            
+            this.showError(errorMessage);
         } finally {
             this.hideLoading();
         }
