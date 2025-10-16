@@ -6,8 +6,18 @@ class WeatherApp {
         this.apiHost = 'nt5u9vqehg.re.qweatherapi.com';
         this.baseUrl = `https://${this.apiHost}/v7`;
         this.useMockData = false; // 设置为false使用真实API
-        this.location = '北京';
-        this.cityId = '101010100'; // 北京城市ID
+        
+        // 多城市配置
+        this.cities = [
+            { name: '杭州', id: '101210101' },
+            { name: '婺源', id: '101240303' },
+            { name: '景德镇', id: '101240801' },
+            { name: '天津', id: '101030100' },
+            { name: '玉田', id: '101090502' }
+        ];
+        
+        this.citiesData = {}; // 存储各城市天气数据
+        this.citiesGrid = document.getElementById('cities-grid');
         
         this.loadingState = document.getElementById('loading-state');
         this.errorMessage = document.getElementById('error-message');
@@ -22,6 +32,9 @@ class WeatherApp {
         }
         if (!this.refreshBtn) {
             console.error('refresh-btn 元素未找到');
+        }
+        if (!this.citiesGrid) {
+            console.error('cities-grid 元素未找到');
         }
         
         this.init();
@@ -88,22 +101,20 @@ class WeatherApp {
             this.showLoading();
             this.hideError();
 
-            console.log('正在获取天气数据...');
+            console.log('正在获取多城市天气数据...');
 
-            let weatherData;
-            
             if (this.useMockData) {
                 // 使用模拟数据
                 await new Promise(resolve => setTimeout(resolve, 800));
-                weatherData = this.generateMockWeatherData();
+                this.citiesData = this.generateMockMultiCityData();
             } else {
-                // 使用真实API
-                weatherData = await this.fetchRealWeatherData();
+                // 使用真实API - 并发获取所有城市数据
+                await this.fetchAllCitiesWeatherData();
             }
             
-            this.updateWeatherDisplay(weatherData);
+            this.updateCitiesDisplay();
             this.updateLastUpdateTime();
-
+            
         } catch (error) {
             console.error('获取天气数据失败:', error);
             this.showError('获取天气数据失败，请稍后重试');
@@ -111,8 +122,8 @@ class WeatherApp {
             // 如果API失败，回退到模拟数据
             if (!this.useMockData) {
                 console.log('API失败，使用模拟数据作为备选');
-                const mockData = this.generateMockWeatherData();
-                this.updateWeatherDisplay(mockData);
+                this.citiesData = this.generateMockMultiCityData();
+                this.updateCitiesDisplay();
                 this.updateLastUpdateTime();
             }
         } finally {
@@ -224,21 +235,22 @@ class WeatherApp {
     }
 
     // 转换API数据为显示格式
-    convertApiDataToDisplayFormat(apiData) {
+    convertApiDataToDisplayFormat(apiData, cityName) {
         const now = apiData.now;
         
         return {
-            city: this.location,
-            temperature: now.temp,
-            weather: this.translateWeather(now.text),
-            humidity: now.humidity,
+            cityName: cityName,
+            temperature: parseInt(now.temp),
+            weatherText: now.text,
+            humidity: parseInt(now.humidity),
             windDir: now.windDir,
-            windSpeed: now.windSpeed,
+            windSpeed: parseInt(now.windSpeed),
             windScale: now.windScale,
-            pressure: now.pressure,
-            visibility: now.vis,
-            feelsLike: now.feelsLike,
-            icon: now.icon
+            pressure: parseInt(now.pressure),
+            visibility: parseInt(now.vis),
+            feelsLike: parseInt(now.feelsLike),
+            icon: now.icon,
+            updateTime: new Date().toLocaleString('zh-CN')
         };
     }
 
@@ -612,6 +624,176 @@ class WeatherApp {
     }
 
     // 自动刷新功能（可选）
+    // 并发获取所有城市天气数据
+    async fetchAllCitiesWeatherData() {
+        console.log('🚀 开始并发获取所有城市天气数据...');
+        
+        // 创建所有城市的API请求
+        const promises = this.cities.map(city => this.fetchSingleCityWeatherData(city));
+        
+        // 并发执行所有请求
+        const results = await Promise.allSettled(promises);
+        
+        // 处理结果
+        results.forEach((result, index) => {
+            const city = this.cities[index];
+            if (result.status === 'fulfilled') {
+                this.citiesData[city.name] = result.value;
+                console.log(`✅ ${city.name} 天气数据获取成功`);
+            } else {
+                console.error(`❌ ${city.name} 天气数据获取失败:`, result.reason);
+                // 使用模拟数据作为备选
+                this.citiesData[city.name] = this.generateMockCityData(city.name);
+            }
+        });
+        
+        console.log('📊 所有城市天气数据获取完成:', this.citiesData);
+    }
+    
+    // 获取单个城市天气数据
+    async fetchSingleCityWeatherData(city) {
+        const headers = {
+            'X-QW-Api-Key': this.apiKey,
+            'Content-Type': 'application/json'
+        };
+        
+        const weatherUrl = `${this.baseUrl}/weather/now?location=${city.id}`;
+        console.log(`🌤️ 获取 ${city.name} 天气数据:`, weatherUrl);
+        
+        let response = await fetch(weatherUrl, { headers });
+        
+        if (!response.ok) {
+            // 回退到key参数方式
+            const fallbackUrl = `${this.baseUrl}/weather/now?location=${city.id}&key=${this.apiKey}`;
+            console.log(`🔄 ${city.name} 回退到参数方式:`, fallbackUrl);
+            response = await fetch(fallbackUrl);
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.code !== '200') {
+            throw new Error(`API错误: ${data.code} - ${data.refer?.license || '未知错误'}`);
+        }
+        
+        return this.convertApiDataToDisplayFormat(data, city.name);
+    }
+    
+    // 生成多城市模拟数据
+    generateMockMultiCityData() {
+        const mockData = {};
+        this.cities.forEach(city => {
+            mockData[city.name] = this.generateMockCityData(city.name);
+        });
+        return mockData;
+    }
+    
+    // 生成单个城市模拟数据
+    generateMockCityData(cityName) {
+        const weatherConditions = ['晴', '多云', '阴', '小雨', '中雨', '大雨', '雪', '雾'];
+        const windDirections = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
+        
+        const randomCondition = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
+        const randomWind = windDirections[Math.floor(Math.random() * windDirections.length)];
+        
+        return {
+            cityName: cityName,
+            temperature: Math.floor(Math.random() * 30) + 5, // 5-35度
+            weatherText: randomCondition,
+            humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
+            windDir: randomWind,
+            windSpeed: Math.floor(Math.random() * 20) + 5, // 5-25 km/h
+            visibility: Math.floor(Math.random() * 20) + 5, // 5-25 km
+            feelsLike: Math.floor(Math.random() * 30) + 5, // 5-35度
+            pressure: Math.floor(Math.random() * 50) + 1000, // 1000-1050 hPa
+            updateTime: new Date().toLocaleString('zh-CN')
+        };
+    }
+    
+    // 更新多城市显示
+    updateCitiesDisplay() {
+        if (!this.citiesGrid) {
+            console.error('cities-grid 元素未找到');
+            return;
+        }
+        
+        // 清空现有内容
+        this.citiesGrid.innerHTML = '';
+        
+        // 为每个城市创建卡片
+        this.cities.forEach(city => {
+            const cityData = this.citiesData[city.name];
+            if (cityData) {
+                const cityCard = this.createCityCard(cityData);
+                this.citiesGrid.appendChild(cityCard);
+            }
+        });
+    }
+    
+    // 创建城市天气卡片
+    createCityCard(cityData) {
+        const card = document.createElement('div');
+        card.className = 'city-weather-card';
+        card.setAttribute('data-city', cityData.cityName);
+        
+        card.innerHTML = `
+            <div class="city-name">
+                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                <span>${cityData.cityName}</span>
+            </div>
+            
+            <div class="city-temp">
+                <span>${cityData.temperature}</span>
+                <span class="temp-unit">°C</span>
+            </div>
+            
+            <div class="city-weather-desc">
+                <i class="fas ${this.getWeatherIcon(cityData.weatherText)} city-weather-icon" aria-hidden="true"></i>
+                <span class="city-weather-text">${cityData.weatherText}</span>
+            </div>
+            
+            <div class="city-details">
+                <div class="city-detail-item">
+                    <span class="city-detail-label">湿度</span>
+                    <span class="city-detail-value">${cityData.humidity}%</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">风向</span>
+                    <span class="city-detail-value">${cityData.windDir}</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">能见度</span>
+                    <span class="city-detail-value">${cityData.visibility}km</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">体感</span>
+                    <span class="city-detail-value">${cityData.feelsLike}°C</span>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    // 根据天气状况获取图标
+    getWeatherIcon(weatherText) {
+        const iconMap = {
+            '晴': 'fa-sun',
+            '多云': 'fa-cloud-sun',
+            '阴': 'fa-cloud',
+            '小雨': 'fa-cloud-rain',
+            '中雨': 'fa-cloud-rain',
+            '大雨': 'fa-cloud-showers-heavy',
+            '雪': 'fa-snowflake',
+            '雾': 'fa-smog'
+        };
+        
+        return iconMap[weatherText] || 'fa-cloud';
+    }
+
     startAutoRefresh(intervalMinutes = 10) {
         setInterval(() => {
             this.loadWeatherData();

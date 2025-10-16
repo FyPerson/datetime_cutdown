@@ -45,9 +45,166 @@
 
 /* 天气容器 */
 .weather-container {
-    max-width: 800px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
+}
+
+/* 多城市网格布局 */
+.cities-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* 单个城市天气卡片 */
+.city-weather-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm) var(--shadow-color);
+    transition: var(--transition-default);
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.city-weather-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md) var(--shadow-color);
+}
+
+/* 城市名称 */
+.city-name {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.city-name i {
+    color: var(--accent-color);
+}
+
+/* 温度显示 */
+.city-temp {
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: var(--spacing-sm) 0;
+}
+
+.temp-unit {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+}
+
+/* 天气状况 */
+.city-weather-desc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin: var(--spacing-sm) 0;
+}
+
+.city-weather-icon {
+    font-size: 2rem;
+    color: var(--accent-color);
+}
+
+.city-weather-text {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+/* 详细信息 */
+.city-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.city-detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.city-detail-label {
+    font-size: 0.7em;
+    opacity: 0.8;
+}
+
+.city-detail-value {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .cities-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .weather-container {
+        max-width: 1000px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cities-grid {
+        grid-template-columns: repeat(5, 200px);
+        overflow-x: auto;
+        padding-bottom: var(--spacing-sm);
+        gap: var(--spacing-md);
+    }
+    
+    .city-weather-card {
+        min-width: 180px;
+        min-height: 180px;
+        padding: var(--spacing-md);
+    }
+    
+    .city-temp {
+        font-size: var(--font-size-xl);
+    }
+    
+    .city-weather-icon {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cities-grid {
+        grid-template-columns: repeat(5, 160px);
+        gap: var(--spacing-sm);
+    }
+    
+    .city-weather-card {
+        min-width: 150px;
+        min-height: 160px;
+        padding: var(--spacing-sm);
+    }
+    
+    .city-name {
+        font-size: var(--font-size-base);
+    }
+    
+    .city-temp {
+        font-size: var(--font-size-lg);
+    }
 }
 
 /* 主要天气信息 */
