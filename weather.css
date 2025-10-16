@@ -216,8 +216,9 @@
 }
 
 .forecast-day {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--spacing-sm);
     align-items: center;
     padding: var(--spacing-xs);
     background: var(--bg-color);
@@ -234,20 +235,18 @@
 .forecast-date {
     color: var(--text-secondary);
     font-weight: 500;
-    flex: 0 0 auto;
+    text-align: left;
 }
 
 .forecast-temp {
     color: var(--text-color);
     font-weight: 600;
     text-align: center;
-    flex: 1;
 }
 
 .forecast-weather {
     color: var(--text-secondary);
     font-size: 0.7em;
-    flex: 0 0 auto;
     text-align: right;
 }
 
