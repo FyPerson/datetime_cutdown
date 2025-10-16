@@ -93,17 +93,55 @@
     color: var(--accent-color);
 }
 
-/* 温度显示 */
-.city-temp {
-    font-size: var(--font-size-xxl);
+/* 温度显示区域 */
+.city-temp-display {
+    margin: var(--spacing-sm) 0;
+    text-align: center;
+}
+
+/* 实时温度 */
+.temp-current {
+    font-size: var(--font-size-xl);
     font-weight: 700;
     color: var(--accent-color);
-    margin: var(--spacing-sm) 0;
+    margin-bottom: var(--spacing-xs);
+}
+
+.temp-value {
+    font-size: var(--font-size-xl);
+}
+
+/* 温度区间 */
+.temp-range {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.temp-min {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+}
+
+.temp-separator {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0 var(--spacing-xs);
+}
+
+.temp-max {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
 }
 
 .temp-unit {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
+    margin-left: var(--spacing-xs);
 }
 
 /* 天气状况 */
@@ -152,6 +190,87 @@
     color: var(--text-color);
 }
 
+
+/* 15天预报样式 - 按照近3天样式 */
+.forecast-15d {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border-color);
+}
+
+.forecast-title {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+    text-align: center;
+    font-weight: 500;
+}
+
+.forecast-days {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: var(--spacing-xs);
+}
+
+.forecast-day {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs);
+    background: var(--bg-color);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    transition: var(--transition-default);
+}
+
+.forecast-day:hover {
+    background: var(--card-bg);
+    transform: translateX(1px);
+}
+
+.forecast-date {
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex: 0 0 auto;
+}
+
+.forecast-temp {
+    color: var(--text-color);
+    font-weight: 600;
+    text-align: center;
+    flex: 1;
+}
+
+.forecast-weather {
+    color: var(--text-secondary);
+    font-size: 0.7em;
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+/* 滚动条样式 */
+.forecast-days::-webkit-scrollbar {
+    width: 4px;
+}
+
+.forecast-days::-webkit-scrollbar-track {
+    background: var(--bg-color);
+    border-radius: 2px;
+}
+
+.forecast-days::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 2px;
+}
+
+.forecast-days::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
+}
+
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
     .cities-grid {
@@ -177,12 +296,37 @@
         padding: var(--spacing-md);
     }
     
-    .city-temp {
-        font-size: var(--font-size-xl);
+    .city-temp-display {
+        margin: var(--spacing-xs) 0;
+    }
+    
+    .temp-current {
+        font-size: var(--font-size-lg);
+    }
+    
+    .temp-range {
+        font-size: var(--font-size-base);
+    }
+    
+    .temp-min {
+        font-size: var(--font-size-sm);
+    }
+    
+    .temp-max {
+        font-size: var(--font-size-base);
     }
     
     .city-weather-icon {
         font-size: 1.5rem;
+    }
+    
+    .forecast-day {
+        padding: 4px;
+        font-size: 0.6rem;
+    }
+    
+    .forecast-days {
+        max-height: 200px;
     }
 }
 
@@ -202,8 +346,29 @@
         font-size: var(--font-size-base);
     }
     
-    .city-temp {
-        font-size: var(--font-size-lg);
+    .temp-current {
+        font-size: var(--font-size-base);
+    }
+    
+    .temp-range {
+        font-size: var(--font-size-sm);
+    }
+    
+    .temp-min {
+        font-size: var(--font-size-xs);
+    }
+    
+    .temp-max {
+        font-size: var(--font-size-sm);
+    }
+    
+    .forecast-day {
+        padding: 2px;
+        font-size: 0.5rem;
+    }
+    
+    .forecast-days {
+        max-height: 150px;
     }
 }
 

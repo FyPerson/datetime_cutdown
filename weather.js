@@ -5,9 +5,11 @@ class WeatherApp {
         this.apiKey = '24f3a52685d341f7a66d8616f1c4bbc7'; // 和风API密钥
         this.apiHost = 'nt5u9vqehg.re.qweatherapi.com';
         this.baseUrl = `https://${this.apiHost}/v7`;
-        this.useMockData = false; // 设置为false使用真实API
+        this.useMockData = false; // 使用真实API，失败时显示"-"
+        this.requestDelay = 2000; // 请求间隔2秒
+        this.maxRetries = 3; // 最大重试次数
         
-        // 多城市配置
+        // 多城市配置 - 使用城市ID用于每日预报
         this.cities = [
             { name: '杭州', id: '101210101' },
             { name: '婺源', id: '101240303' },
@@ -117,12 +119,19 @@ class WeatherApp {
             
         } catch (error) {
             console.error('获取天气数据失败:', error);
-            this.showError('获取天气数据失败，请稍后重试');
             
-            // 如果API失败，回退到模拟数据
-            if (!this.useMockData) {
-                console.log('API失败，使用模拟数据作为备选');
-                this.citiesData = this.generateMockMultiCityData();
+            // 检查是否是SECURITY RESTRICTION错误
+            if (error.message.includes('SECURITY RESTRICTION')) {
+                this.showError('API请求被安全限制，请等待10-15分钟后重试。当前使用模拟数据展示功能。');
+                console.log('🔒 检测到SECURITY RESTRICTION，切换到模拟数据模式');
+            } else {
+                this.showError('获取天气数据失败，请稍后重试');
+            }
+            
+            // API失败时，确保有默认数据显示"-"
+            if (!this.citiesData || Object.keys(this.citiesData).length === 0) {
+                console.log('API失败，生成默认数据显示"-"');
+                this.citiesData = this.generateDefaultCityData();
                 this.updateCitiesDisplay();
                 this.updateLastUpdateTime();
             }
@@ -624,12 +633,12 @@ class WeatherApp {
     }
 
     // 自动刷新功能（可选）
-    // 并发获取所有城市天气数据
+    // 并发获取所有城市天气数据（实时+每日预报）
     async fetchAllCitiesWeatherData() {
-        console.log('🚀 开始并发获取所有城市天气数据...');
+        console.log('🚀 开始并发获取所有城市天气数据（实时+每日预报）...');
         
-        // 创建所有城市的API请求
-        const promises = this.cities.map(city => this.fetchSingleCityWeatherData(city));
+        // 创建所有城市的API请求（实时天气+每日预报）
+        const promises = this.cities.map(city => this.fetchCityWeatherAndForecast(city));
         
         // 并发执行所有请求
         const results = await Promise.allSettled(promises);
@@ -650,45 +659,230 @@ class WeatherApp {
         console.log('📊 所有城市天气数据获取完成:', this.citiesData);
     }
     
-    // 获取单个城市天气数据
-    async fetchSingleCityWeatherData(city) {
+    // 获取单个城市的实时天气和每日预报数据
+    async fetchCityWeatherAndForecast(city) {
         const headers = {
             'X-QW-Api-Key': this.apiKey,
             'Content-Type': 'application/json'
         };
         
-        const weatherUrl = `${this.baseUrl}/weather/now?location=${city.id}`;
-        console.log(`🌤️ 获取 ${city.name} 天气数据:`, weatherUrl);
+        // 并发获取实时天气和每日预报
+        const [weatherResult, forecastResult] = await Promise.allSettled([
+            this.fetchRealTimeWeather(city),
+            this.fetchDailyForecast(city)
+        ]);
         
-        let response = await fetch(weatherUrl, { headers });
-        
-        if (!response.ok) {
-            // 回退到key参数方式
-            const fallbackUrl = `${this.baseUrl}/weather/now?location=${city.id}&key=${this.apiKey}`;
-            console.log(`🔄 ${city.name} 回退到参数方式:`, fallbackUrl);
-            response = await fetch(fallbackUrl);
+        // 处理实时天气数据
+        let weatherData = null;
+        if (weatherResult.status === 'fulfilled') {
+            weatherData = weatherResult.value;
+        } else {
+            console.warn(`${city.name} 实时天气获取失败:`, weatherResult.reason);
         }
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // 处理每日预报数据
+        let forecastData = null;
+        if (forecastResult.status === 'fulfilled') {
+            forecastData = forecastResult.value;
+        } else {
+            console.warn(`${city.name} 每日预报获取失败:`, forecastResult.reason);
         }
         
-        const data = await response.json();
-        
-        if (data.code !== '200') {
-            throw new Error(`API错误: ${data.code} - ${data.refer?.license || '未知错误'}`);
-        }
-        
-        return this.convertApiDataToDisplayFormat(data, city.name);
+        // 合并数据
+        return this.mergeWeatherAndForecastData(city.name, weatherData, forecastData);
     }
     
-    // 生成多城市模拟数据
-    generateMockMultiCityData() {
-        const mockData = {};
+    // 安全的API请求方法（带重试和延迟）
+    async safeApiRequest(url, description, retryCount = 0) {
+        try {
+            // 添加请求延迟
+            if (retryCount > 0) {
+                const delay = this.requestDelay * Math.pow(2, retryCount - 1); // 指数退避
+                console.log(`⏳ ${description} 重试 ${retryCount}/${this.maxRetries}，等待 ${delay}ms`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+            
+            const headers = {
+                'X-QW-Api-Key': this.apiKey,
+                'Content-Type': 'application/json'
+            };
+            
+            console.log(`🌐 ${description} 请求:`, url);
+            const response = await fetch(url, { headers });
+            
+            if (!response.ok) {
+                // 检查是否是SECURITY RESTRICTION错误
+                if (response.status === 403) {
+                    const errorData = await response.json().catch(() => ({}));
+                    if (errorData.error?.type?.includes('SECURITY RESTRICTION')) {
+                        throw new Error(`SECURITY RESTRICTION: ${errorData.error.detail || '请求被安全限制拒绝'}`);
+                    }
+                }
+                
+                // 回退到key参数方式
+                const fallbackUrl = url.includes('?') ? `${url}&key=${this.apiKey}` : `${url}?key=${this.apiKey}`;
+                console.log(`🔄 ${description} 回退到参数方式:`, fallbackUrl);
+                const fallbackResponse = await fetch(fallbackUrl);
+                
+                if (!fallbackResponse.ok) {
+                    throw new Error(`HTTP ${fallbackResponse.status}: ${fallbackResponse.statusText}`);
+                }
+                
+                const data = await fallbackResponse.json();
+                if (data.code !== '200') {
+                    throw new Error(`API错误: ${data.code} - ${data.refer?.license || '未知错误'}`);
+                }
+                
+                return data;
+            }
+            
+            const data = await response.json();
+            if (data.code !== '200') {
+                throw new Error(`API错误: ${data.code} - ${data.refer?.license || '未知错误'}`);
+            }
+            
+            return data;
+            
+        } catch (error) {
+            // 如果是SECURITY RESTRICTION错误，不进行重试
+            if (error.message.includes('SECURITY RESTRICTION')) {
+                console.error(`🔒 ${description} SECURITY RESTRICTION错误:`, error.message);
+                throw error;
+            }
+            
+            // 其他错误进行重试
+            if (retryCount < this.maxRetries) {
+                console.warn(`⚠️ ${description} 请求失败，准备重试:`, error.message);
+                return this.safeApiRequest(url, description, retryCount + 1);
+            } else {
+                console.error(`❌ ${description} 重试次数用尽:`, error.message);
+                throw error;
+            }
+        }
+    }
+    
+    // 获取实时天气数据
+    async fetchRealTimeWeather(city) {
+        const weatherUrl = `${this.baseUrl}/weather/now?location=${city.id}`;
+        return this.safeApiRequest(weatherUrl, `${city.name} 实时天气`);
+    }
+    
+    // 获取每日预报数据
+    async fetchDailyForecast(city) {
+        const forecastUrl = `${this.baseUrl}/weather/15d?location=${city.id}`;
+        return this.safeApiRequest(forecastUrl, `${city.name} 15天预报`);
+    }
+    
+    // 合并实时天气和每日预报数据
+    mergeWeatherAndForecastData(cityName, weatherData, forecastData) {
+        const result = {
+            cityName: cityName,
+            updateTime: new Date().toLocaleString('zh-CN'),
+            // 默认值，API失败时显示"-"
+            temperature: '-',
+            tempMin: '-',
+            tempMax: '-',
+            tempRange: '-',
+            weatherText: '-',
+            humidity: '-',
+            windDir: '-',
+            windSpeed: '-',
+            windScale: '-',
+            pressure: '-',
+            visibility: '-',
+            feelsLike: '-',
+            icon: 'fa-cloud'
+        };
+        
+        // 如果有实时天气数据，使用实时数据
+        if (weatherData && weatherData.now) {
+            const now = weatherData.now;
+            result.temperature = parseInt(now.temp);
+            result.weatherText = now.text;
+            result.humidity = parseInt(now.humidity);
+            result.windDir = now.windDir;
+            result.windSpeed = parseInt(now.windSpeed);
+            result.windScale = now.windScale;
+            result.pressure = parseInt(now.pressure);
+            result.visibility = parseInt(now.vis);
+            result.feelsLike = parseInt(now.feelsLike);
+            result.icon = now.icon;
+        }
+        
+        // 如果有每日预报数据，使用今日的温度区间
+        if (forecastData && forecastData.daily && forecastData.daily.length > 0) {
+            const daily = forecastData.daily;
+            const today = daily[0];
+            
+            result.tempMin = parseInt(today.tempMin);
+            result.tempMax = parseInt(today.tempMax);
+            result.tempRange = `${today.tempMin}°C - ${today.tempMax}°C`;
+            
+            // 前3天预览数据
+            result.preview3d = daily.slice(0, 3).map(day => ({
+                date: day.fxDate,
+                tempMin: parseInt(day.tempMin),
+                tempMax: parseInt(day.tempMax),
+                weather: day.textDay,
+                icon: day.iconDay
+            }));
+            
+            // 完整15天数据
+            result.forecast15d = daily.map(day => ({
+                date: day.fxDate,
+                tempMin: parseInt(day.tempMin),
+                tempMax: parseInt(day.tempMax),
+                weather: day.textDay,
+                icon: day.iconDay,
+                humidity: parseInt(day.humidity),
+                windDir: day.windDirDay,
+                windSpeed: parseInt(day.windSpeedDay),
+                pressure: parseInt(day.pressure),
+                precip: parseFloat(day.precip),
+                uvIndex: parseInt(day.uvIndex)
+            }));
+            
+            // 如果没有实时天气数据，使用预报数据
+            if (!weatherData) {
+                result.weatherText = today.textDay;
+                result.humidity = parseInt(today.humidity);
+                result.windDir = today.windDirDay;
+                result.windSpeed = parseInt(today.windSpeedDay);
+                result.windScale = today.windScaleDay;
+                result.pressure = parseInt(today.pressure);
+                result.icon = today.iconDay;
+            }
+        } else {
+            result.preview3d = [];
+            result.forecast15d = [];
+        }
+        
+        return result;
+    }
+    
+    // 生成默认城市数据（API失败时显示"-"）
+    generateDefaultCityData() {
+        const defaultData = {};
         this.cities.forEach(city => {
-            mockData[city.name] = this.generateMockCityData(city.name);
+            defaultData[city.name] = {
+                cityName: city.name,
+                temperature: '-',
+                tempMin: '-',
+                tempMax: '-',
+                tempRange: '-',
+                weatherText: '-',
+                humidity: '-',
+                windDir: '-',
+                windSpeed: '-',
+                windScale: '-',
+                pressure: '-',
+                visibility: '-',
+                feelsLike: '-',
+                icon: 'fa-cloud',
+                updateTime: new Date().toLocaleString('zh-CN')
+            };
         });
-        return mockData;
+        return defaultData;
     }
     
     // 生成单个城市模拟数据
@@ -699,15 +893,23 @@ class WeatherApp {
         const randomCondition = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
         const randomWind = windDirections[Math.floor(Math.random() * windDirections.length)];
         
+        // 生成温度区间
+        const tempMin = Math.floor(Math.random() * 15) + 5; // 5-20度
+        const tempMax = tempMin + Math.floor(Math.random() * 15) + 5; // 比最低温度高5-20度
+        const currentTemp = Math.floor(Math.random() * (tempMax - tempMin + 1)) + tempMin; // 当前温度在区间内
+        
         return {
             cityName: cityName,
-            temperature: Math.floor(Math.random() * 30) + 5, // 5-35度
+            temperature: currentTemp,
+            tempMin: tempMin,
+            tempMax: tempMax,
+            tempRange: `${tempMin}°C - ${tempMax}°C`,
             weatherText: randomCondition,
             humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
             windDir: randomWind,
             windSpeed: Math.floor(Math.random() * 20) + 5, // 5-25 km/h
             visibility: Math.floor(Math.random() * 20) + 5, // 5-25 km
-            feelsLike: Math.floor(Math.random() * 30) + 5, // 5-35度
+            feelsLike: currentTemp + Math.floor(Math.random() * 6) - 3, // 体感温度在±3度范围内
             pressure: Math.floor(Math.random() * 50) + 1000, // 1000-1050 hPa
             updateTime: new Date().toLocaleString('zh-CN')
         };
@@ -739,15 +941,34 @@ class WeatherApp {
         card.className = 'city-weather-card';
         card.setAttribute('data-city', cityData.cityName);
         
+        // 生成15天数据HTML，按照近3天的样式
+        const forecast15dHtml = cityData.forecast15d && cityData.forecast15d.length > 0
+            ? cityData.forecast15d.map(day => `
+                <div class="forecast-day">
+                    <div class="forecast-date">${this.formatDate(day.date)}</div>
+                    <div class="forecast-temp">${day.tempMin}°-${day.tempMax}°</div>
+                    <div class="forecast-weather">${day.weather}</div>
+                </div>
+            `).join('')
+            : '<div class="forecast-day">暂无数据</div>';
+        
         card.innerHTML = `
             <div class="city-name">
                 <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                 <span>${cityData.cityName}</span>
             </div>
             
-            <div class="city-temp">
-                <span>${cityData.temperature}</span>
-                <span class="temp-unit">°C</span>
+            <div class="city-temp-display">
+                <div class="temp-current">
+                    <span class="temp-value">${cityData.temperature}</span>
+                    <span class="temp-unit">°C</span>
+                </div>
+                <div class="temp-range">
+                    <span class="temp-min">${cityData.tempMin}</span>
+                    <span class="temp-separator">-</span>
+                    <span class="temp-max">${cityData.tempMax}</span>
+                    <span class="temp-unit">°C</span>
+                </div>
             </div>
             
             <div class="city-weather-desc">
@@ -758,7 +979,7 @@ class WeatherApp {
             <div class="city-details">
                 <div class="city-detail-item">
                     <span class="city-detail-label">湿度</span>
-                    <span class="city-detail-value">${cityData.humidity}%</span>
+                    <span class="city-detail-value">${cityData.humidity}${cityData.humidity !== '-' ? '%' : ''}</span>
                 </div>
                 <div class="city-detail-item">
                     <span class="city-detail-label">风向</span>
@@ -766,11 +987,18 @@ class WeatherApp {
                 </div>
                 <div class="city-detail-item">
                     <span class="city-detail-label">能见度</span>
-                    <span class="city-detail-value">${cityData.visibility}km</span>
+                    <span class="city-detail-value">${cityData.visibility}${cityData.visibility !== '-' ? 'km' : ''}</span>
                 </div>
                 <div class="city-detail-item">
                     <span class="city-detail-label">体感</span>
-                    <span class="city-detail-value">${cityData.feelsLike}°C</span>
+                    <span class="city-detail-value">${cityData.feelsLike}${cityData.feelsLike !== '-' ? '°C' : ''}</span>
+                </div>
+            </div>
+            
+            <div class="forecast-15d">
+                <div class="forecast-title">近15天</div>
+                <div class="forecast-days">
+                    ${forecast15dHtml}
                 </div>
             </div>
         `;
@@ -792,6 +1020,17 @@ class WeatherApp {
         };
         
         return iconMap[weatherText] || 'fa-cloud';
+    }
+    
+    // 格式化日期显示
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        const weekday = weekdays[date.getDay()];
+        
+        return `${month}/${day} 周${weekday}`;
     }
 
     startAutoRefresh(intervalMinutes = 10) {
@@ -827,11 +1066,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 处理页面可见性变化，当页面重新可见时刷新数据
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && window.weatherApp) {
-        window.weatherApp.loadWeatherData();
-    }
-});
+// document.addEventListener('visibilitychange', () => {
+//     if (!document.hidden && window.weatherApp) {
+//         window.weatherApp.loadWeatherData();
+//     }
+// });
 
 // 处理网络状态变化
 window.addEventListener('online', () => {
