@@ -17,26 +17,30 @@
 .weather-link, .back-link {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
     background: var(--card-bg);
     color: var(--text-color);
     text-decoration: none;
-    border-radius: 12px;
-    border: 2px solid var(--border-color);
-    transition: all 0.3s ease;
+    border-radius: var(--border-radius-lg);
+    border: none;
+    transition: var(--transition-default);
     font-weight: 500;
+    box-shadow: var(--shadow-sm) var(--shadow-color);
+    font-size: var(--font-size-sm);
 }
 
 .weather-link:hover, .back-link:hover {
-    background: var(--accent-color);
-    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md) var(--shadow-color);
 }
 
 .weather-link i, .back-link i {
-    font-size: 1.1rem;
+    transition: transform var(--transition-speed) var(--transition-timing);
+}
+
+.weather-link:hover i, .back-link:hover i {
+    transform: rotate(360deg);
 }
 
 /* 天气容器 */
