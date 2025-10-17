@@ -941,9 +941,9 @@ class WeatherApp {
         card.className = 'city-weather-card';
         card.setAttribute('data-city', cityData.cityName);
         
-        // 生成15天数据HTML，按照近3天的样式
-        const forecast15dHtml = cityData.forecast15d && cityData.forecast15d.length > 0
-            ? cityData.forecast15d.map(day => `
+        // 生成15天数据HTML，从次日开始，全部展开
+        const forecast15dHtml = cityData.forecast15d && cityData.forecast15d.length > 1
+            ? cityData.forecast15d.slice(1).map(day => `
                 <div class="forecast-day">
                     <div class="forecast-date">${this.formatDate(day.date)}</div>
                     <div class="forecast-temp">${day.tempMin}°-${day.tempMax}°</div>
@@ -967,7 +967,7 @@ class WeatherApp {
                     <span class="temp-min">${cityData.tempMin}</span>
                     <span class="temp-separator">-</span>
                     <span class="temp-max">${cityData.tempMax}</span>
-                    <span class="temp-unit">°C</span>
+                    <span class="temp-unit-range">°C</span>
                 </div>
             </div>
             
@@ -986,6 +986,14 @@ class WeatherApp {
                     <span class="city-detail-value">${cityData.windDir}</span>
                 </div>
                 <div class="city-detail-item">
+                    <span class="city-detail-label">风速</span>
+                    <span class="city-detail-value">${cityData.windSpeed}${cityData.windSpeed !== '-' ? 'km/h' : ''}</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">气压</span>
+                    <span class="city-detail-value">${cityData.pressure}${cityData.pressure !== '-' ? 'hPa' : ''}</span>
+                </div>
+                <div class="city-detail-item">
                     <span class="city-detail-label">能见度</span>
                     <span class="city-detail-value">${cityData.visibility}${cityData.visibility !== '-' ? 'km' : ''}</span>
                 </div>
@@ -993,10 +1001,20 @@ class WeatherApp {
                     <span class="city-detail-label">体感</span>
                     <span class="city-detail-value">${cityData.feelsLike}${cityData.feelsLike !== '-' ? '°C' : ''}</span>
                 </div>
+                ${cityData.forecast15d && cityData.forecast15d.length > 0 ? `
+                <div class="city-detail-item">
+                    <span class="city-detail-label">降水量</span>
+                    <span class="city-detail-value">${cityData.forecast15d[0].precip}${cityData.forecast15d[0].precip !== '-' ? 'mm' : ''}</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">紫外线</span>
+                    <span class="city-detail-value">${cityData.forecast15d[0].uvIndex}${cityData.forecast15d[0].uvIndex !== '-' ? '' : ''}</span>
+                </div>
+                ` : ''}
             </div>
             
             <div class="forecast-15d">
-                <div class="forecast-title">近15天</div>
+                <div class="forecast-title">未来14天</div>
                 <div class="forecast-days">
                     ${forecast15dHtml}
                 </div>
