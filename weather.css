@@ -958,14 +958,14 @@
     color: var(--text-secondary);
 }
 
-/* 城市月相信息内容 */
-.city-moon-phase-content {
+/* 城市天文信息内容 */
+.city-astronomy-content {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
 }
 
-.city-moon-info-card {
+.city-astronomy-card {
     background: var(--card-bg);
     border-radius: var(--border-radius-sm);
     padding: var(--spacing-sm);
@@ -974,48 +974,83 @@
     border: 1px solid var(--border-color);
 }
 
-.city-moon-info-card:hover {
+.city-astronomy-card:hover {
     background: var(--bg-color);
     transform: translateY(-1px);
 }
 
+/* 日出日落时间 */
+.city-sun-times {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.city-sun-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.city-sun-time-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.city-sun-time-value {
+    font-size: var(--font-size-sm);
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+/* 月升月落时间 */
 .city-moon-times {
     display: flex;
     justify-content: space-around;
     margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .city-moon-time {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
 .city-moon-time-label {
     font-size: var(--font-size-xs);
     color: var(--text-secondary);
-    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
 }
 
 .city-moon-time-value {
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    color: var(--text-color);
+    font-size: var(--font-size-sm);
+    color: var(--accent-color);
+    font-weight: 700;
 }
 
+/* 月相信息 */
 .city-moon-phase-info {
-    margin-bottom: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
 .city-moon-phase-name {
     font-size: var(--font-size-sm);
-    font-weight: 600;
     color: var(--text-color);
-    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
 }
 
 .city-moon-phase-icon {
-    font-size: var(--font-size-sm);
-    color: var(--accent-color);
-    margin-bottom: var(--spacing-xs);
+    font-size: 1.5rem;
 }
 
 .city-moon-illumination {
@@ -1023,10 +1058,11 @@
     color: var(--text-secondary);
 }
 
+
 /* 加载状态样式 */
 .loading-indices,
 .loading-air-quality,
-.loading-moon-phase {
+.loading-astronomy {
     text-align: center;
     color: var(--text-secondary);
     font-size: var(--font-size-xs);
@@ -1136,6 +1172,7 @@
         font-size: 7px;
     }
     
+    .city-sun-times,
     .city-moon-times {
         flex-direction: column;
         gap: var(--spacing-xs);
@@ -1231,8 +1268,14 @@
         font-size: 6px;
     }
     
-    .city-moon-info-card {
+    .city-astronomy-card {
         padding: var(--spacing-xs);
+    }
+    
+    .city-sun-times,
+    .city-moon-times {
+        flex-direction: column;
+        gap: var(--spacing-xs);
     }
 }
 

@@ -258,6 +258,7 @@ class WeatherApp {
             pressure: parseInt(now.pressure),
             visibility: parseInt(now.vis),
             feelsLike: parseInt(now.feelsLike),
+            cloud: parseInt(now.cloud),
             icon: now.icon,
             updateTime: new Date().toLocaleString('zh-CN')
         };
@@ -806,6 +807,7 @@ class WeatherApp {
             result.pressure = parseInt(now.pressure);
             result.visibility = parseInt(now.vis);
             result.feelsLike = parseInt(now.feelsLike);
+            result.cloud = parseInt(now.cloud);
             result.icon = now.icon;
         }
         
@@ -1010,8 +1012,8 @@ class WeatherApp {
                     <span class="city-detail-value">${cityData.forecast15d[0].precip}${cityData.forecast15d[0].precip !== '-' ? 'mm' : ''}</span>
                 </div>
                 <div class="city-detail-item">
-                    <span class="city-detail-label">紫外线</span>
-                    <span class="city-detail-value">${cityData.forecast15d[0].uvIndex}${cityData.forecast15d[0].uvIndex !== '-' ? '' : ''}</span>
+                    <span class="city-detail-label">云量</span>
+                    <span class="city-detail-value">${cityData.cloud}%</span>
                 </div>
                 ` : ''}
             </div>
@@ -1047,14 +1049,14 @@ class WeatherApp {
                     </div>
                 </div>
                 
-                <!-- 月相信息 -->
-                <div class="city-info-section" id="moon-phase-${cityData.cityName}">
+                <!-- 天文信息 -->
+                <div class="city-info-section" id="astronomy-${cityData.cityName}">
                     <div class="city-info-title">
-                        <i class="fas fa-moon"></i>
-                        <span>月相信息</span>
+                        <i class="fas fa-star"></i>
+                        <span>天文信息</span>
                     </div>
-                    <div class="city-moon-phase-content" id="moon-phase-${cityData.cityName}">
-                        <div class="loading-moon-phase">加载中...</div>
+                    <div class="city-astronomy-content" id="astronomy-${cityData.cityName}">
+                        <div class="loading-astronomy">加载中...</div>
                     </div>
                 </div>
             </div>
@@ -1107,16 +1109,20 @@ class WeatherApp {
             console.log(`🔍 为城市 ${city.name} 加载详细信息...`);
             
             // 并发获取该城市的所有详细信息
-            const [weatherIndices, airQuality, moonPhase] = await Promise.allSettled([
+            const [weatherIndices, airQuality, moonPhase, sunTimes] = await Promise.allSettled([
                 this.fetchWeatherIndices(city.id),
                 this.fetchAirQuality(city.id),
-                this.fetchMoonPhase(city.id)
+                this.fetchMoonPhase(city.id),
+                this.fetchSunTimes(city.id)
             ]);
             
             // 更新该城市的显示
             this.updateCityWeatherIndicesDisplay(city.name, weatherIndices.status === 'fulfilled' ? weatherIndices.value : null);
             this.updateCityAirQualityDisplay(city.name, airQuality.status === 'fulfilled' ? airQuality.value : null);
-            this.updateCityMoonPhaseDisplay(city.name, moonPhase.status === 'fulfilled' ? moonPhase.value : null);
+            this.updateCityAstronomyDisplay(city.name, 
+                moonPhase.status === 'fulfilled' ? moonPhase.value : null,
+                sunTimes.status === 'fulfilled' ? sunTimes.value : null
+            );
             
             console.log(`✅ 城市 ${city.name} 详细信息加载完成`);
         } catch (error) {
@@ -1124,14 +1130,14 @@ class WeatherApp {
             // 显示默认内容
             this.updateCityWeatherIndicesDisplay(city.name, null);
             this.updateCityAirQualityDisplay(city.name, null);
-            this.updateCityMoonPhaseDisplay(city.name, null);
+            this.updateCityAstronomyDisplay(city.name, null, null);
         }
     }
 
     // 获取天气指数
     async fetchWeatherIndices(location) {
-        // 获取多种天气指数：运动、洗车、穿衣、感冒、紫外线
-        const indicesUrl = `${this.baseUrl}/indices/1d?location=${location}&type=1,2,3,4,5&key=${this.apiKey}`;
+        // 获取多种天气指数：运动、洗车、穿衣、感冒、紫外线、旅游、晾晒
+        const indicesUrl = `${this.baseUrl}/indices/1d?location=${location}&type=1,2,3,4,5,6,9,14&key=${this.apiKey}`;
         
         try {
             const response = await fetch(indicesUrl);
@@ -1212,6 +1218,34 @@ class WeatherApp {
         }
     }
 
+    // 获取日出日落时间
+    async fetchSunTimes(location) {
+        // 获取今天的日出日落时间
+        const today = new Date();
+        const dateStr = today.getFullYear() + 
+                       String(today.getMonth() + 1).padStart(2, '0') + 
+                       String(today.getDate()).padStart(2, '0');
+        
+        const sunUrl = `${this.baseUrl}/astronomy/sun?location=${location}&date=${dateStr}&key=${this.apiKey}`;
+        
+        try {
+            const response = await fetch(sunUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data.code !== '200') {
+                throw new Error(`API错误: ${data.code}`);
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('获取日出日落时间失败:', error);
+            throw error;
+        }
+    }
+
     // 更新城市天气指数显示
     updateCityWeatherIndicesDisplay(cityName, indicesData) {
         const indicesGrid = document.getElementById(`indices-${cityName}`);
@@ -1228,7 +1262,10 @@ class WeatherApp {
             return;
         }
         
-        const indicesHtml = indicesData.map(index => {
+        // 智能选择最重要的6个指数进行显示
+        const selectedIndices = this.selectImportantIndices(indicesData);
+        
+        const indicesHtml = selectedIndices.map(index => {
             console.log(`处理指数:`, index);
             const levelClass = this.getIndexLevelClass(index.level);
             return `
@@ -1295,50 +1332,104 @@ class WeatherApp {
         `;
     }
 
-    // 更新城市月相信息显示
-    updateCityMoonPhaseDisplay(cityName, moonData) {
-        const moonPhaseContent = document.getElementById(`moon-phase-${cityName}`);
-        if (!moonPhaseContent) return;
+    // 更新城市天文信息显示
+    updateCityAstronomyDisplay(cityName, moonData, sunData) {
+        const astronomyContent = document.getElementById(`astronomy-${cityName}`);
+        if (!astronomyContent) return;
         
-        if (!moonData) {
-            moonPhaseContent.innerHTML = '<div class="no-data">暂无月相数据</div>';
-            return;
+        // 日出日落时间
+        let sunTimesHtml = '';
+        if (sunData && sunData.sunrise && sunData.sunset) {
+            sunTimesHtml = `
+                <div class="city-sun-times">
+                    <div class="city-sun-time">
+                        <div class="city-sun-time-label">日出</div>
+                        <div class="city-sun-time-value">${sunData.sunrise ? sunData.sunrise.split('T')[1]?.split('+')[0]?.substring(0,5) || sunData.sunrise : '--'}</div>
+                    </div>
+                    <div class="city-sun-time">
+                        <div class="city-sun-time-label">日落</div>
+                        <div class="city-sun-time-value">${sunData.sunset ? sunData.sunset.split('T')[1]?.split('+')[0]?.substring(0,5) || sunData.sunset : '--'}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            sunTimesHtml = '<div class="city-sun-times"><div class="no-data">暂无日出日落数据</div></div>';
         }
         
         // 月升月落时间
-        const moonTimesHtml = `
-            <div class="city-moon-times">
-                <div class="city-moon-time">
-                    <div class="city-moon-time-label">月升</div>
-                    <div class="city-moon-time-value">${moonData.moonrise ? this.formatTime(moonData.moonrise) : '--'}</div>
+        let moonTimesHtml = '';
+        if (moonData && (moonData.moonrise || moonData.moonset)) {
+            moonTimesHtml = `
+                <div class="city-moon-times">
+                    <div class="city-moon-time">
+                        <div class="city-moon-time-label">月升</div>
+                        <div class="city-moon-time-value">${moonData.moonrise ? this.formatTime(moonData.moonrise) : '--'}</div>
+                    </div>
+                    <div class="city-moon-time">
+                        <div class="city-moon-time-label">月落</div>
+                        <div class="city-moon-time-value">${moonData.moonset ? this.formatTime(moonData.moonset) : '--'}</div>
+                    </div>
                 </div>
-                <div class="city-moon-time">
-                    <div class="city-moon-time-label">月落</div>
-                    <div class="city-moon-time-value">${moonData.moonset ? this.formatTime(moonData.moonset) : '--'}</div>
-                </div>
-            </div>
-        `;
+            `;
+        } else {
+            moonTimesHtml = '<div class="city-moon-times"><div class="no-data">暂无月升月落数据</div></div>';
+        }
         
         // 当前月相信息
-        const currentPhase = moonData.moonPhase && moonData.moonPhase.length > 0 ? moonData.moonPhase[0] : null;
-        const phaseInfoHtml = currentPhase ? `
-            <div class="city-moon-phase-info">
-                <div class="city-moon-phase-name">${currentPhase.name}</div>
-                <div class="city-moon-phase-icon">🌙</div>
-                <div class="city-moon-illumination">照明度: ${currentPhase.illumination}%</div>
-            </div>
-        ` : '<div class="city-moon-phase-info">暂无月相信息</div>';
+        let phaseInfoHtml = '';
+        if (moonData && moonData.moonPhase && moonData.moonPhase.length > 0) {
+            const currentPhase = moonData.moonPhase[0];
+            phaseInfoHtml = `
+                <div class="city-moon-phase-info">
+                    <div class="city-moon-phase-name">${currentPhase.name}</div>
+                    <div class="city-moon-phase-icon">🌙</div>
+                    <div class="city-moon-illumination">照明度: ${currentPhase.illumination}%</div>
+                </div>
+            `;
+        } else {
+            phaseInfoHtml = '<div class="city-moon-phase-info"><div class="no-data">暂无月相信息</div></div>';
+        }
         
-        moonPhaseContent.innerHTML = `
+        astronomyContent.innerHTML = `
             <div class="city-info-title">
-                <i class="fas fa-moon"></i>
-                <span>月相信息</span>
+                <i class="fas fa-star"></i>
+                <span>天文信息</span>
             </div>
-            <div class="city-moon-info-card">
+            <div class="city-astronomy-card">
+                ${sunTimesHtml}
                 ${moonTimesHtml}
                 ${phaseInfoHtml}
             </div>
         `;
+    }
+
+    // 智能选择最重要的6个指数进行显示
+    selectImportantIndices(indicesData) {
+        if (!indicesData || indicesData.length === 0) {
+            return [];
+        }
+        
+        // 定义指数优先级和重要性
+        const indexPriority = {
+            '穿衣指数': 1,      // 最高优先级 - 日常必需
+            '感冒指数': 2,      // 高优先级 - 健康相关
+            '紫外线指数': 3,    // 高优先级 - 健康相关
+            '运动指数': 4,      // 中优先级 - 生活建议
+            '旅游指数': 5,      // 中优先级 - 新增功能
+            '晾晒指数': 6,      // 中优先级 - 新增功能
+            '洗车指数': 7,      // 低优先级 - 可选
+            '钓鱼指数': 8       // 低优先级 - 可选
+        };
+        
+        // 按优先级排序
+        const sortedIndices = indicesData.sort((a, b) => {
+            const priorityA = indexPriority[a.name] || 999;
+            const priorityB = indexPriority[b.name] || 999;
+            return priorityA - priorityB;
+        });
+        
+        // 选择前6个最重要的指数
+        return sortedIndices.slice(0, 6);
     }
 
     // 获取指数等级样式类
