@@ -696,3 +696,598 @@
 [data-theme="light"] .weather-update {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
+
+/* 城市卡片详细信息样式 */
+.city-detailed-info {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.city-info-section {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background: var(--bg-color);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.city-info-section:last-child {
+    margin-bottom: 0;
+}
+
+.city-info-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.city-info-title::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 20px;
+    height: 1px;
+    background: var(--accent-color);
+}
+
+.city-info-title i {
+    color: var(--accent-color);
+    font-size: var(--font-size-xs);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3px;
+    border-radius: 4px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 城市天气指数网格 - 紧凑美观布局 */
+.city-indices-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 4px;
+    max-height: 85px;
+    overflow: hidden;
+}
+
+.city-index-item {
+    background: linear-gradient(145deg, var(--card-bg) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-radius: 4px;
+    padding: 2px 1px;
+    text-align: center;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.city-index-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.city-index-item:hover {
+    background: linear-gradient(145deg, var(--bg-color) 0%, rgba(255, 255, 255, 0.05) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent-color);
+}
+
+.city-index-item:hover::before {
+    opacity: 1;
+}
+
+.city-index-name {
+    font-size: 8px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1px;
+    line-height: 1.1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    height: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.city-index-level {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 1px;
+    position: relative;
+    z-index: 1;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.city-index-level.excellent { 
+    color: #4CAF50; 
+    text-shadow: 0 0 2px rgba(76, 175, 80, 0.3);
+}
+.city-index-level.good { 
+    color: #8BC34A; 
+    text-shadow: 0 0 2px rgba(139, 195, 74, 0.3);
+}
+.city-index-level.moderate { 
+    color: #FFC107; 
+    text-shadow: 0 0 2px rgba(255, 193, 7, 0.3);
+}
+.city-index-level.unhealthy { 
+    color: #FF9800; 
+    text-shadow: 0 0 2px rgba(255, 152, 0, 0.3);
+}
+.city-index-level.hazardous { 
+    color: #F44336; 
+    text-shadow: 0 0 2px rgba(244, 67, 54, 0.3);
+}
+
+.city-index-category {
+    font-size: 7px;
+    color: #ffffff;
+    line-height: 1.1;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 城市空气质量内容 */
+.city-air-quality-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.city-aqi-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    text-align: center;
+    transition: var(--transition-default);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.city-aqi-card:hover {
+    background: var(--bg-color);
+    transform: translateY(-1px);
+}
+
+.city-aqi-title {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.city-aqi-value {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    margin-bottom: var(--spacing-xs);
+}
+
+.city-aqi-value.excellent { color: #4CAF50; }
+.city-aqi-value.good { color: #8BC34A; }
+.city-aqi-value.moderate { color: #FFC107; }
+.city-aqi-value.unhealthy { color: #FF9800; }
+.city-aqi-value.hazardous { color: #F44336; }
+
+.city-aqi-level {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.city-pollutants-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-xs);
+    background: var(--card-bg);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+}
+
+.city-pollutant-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+    padding: 4px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition-default);
+}
+
+.city-pollutant-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.city-pollutant-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 2px;
+}
+
+.city-pollutant-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 2px;
+}
+
+.city-pollutant-unit {
+    font-size: 8px;
+    color: var(--text-secondary);
+}
+
+/* 城市月相信息内容 */
+.city-moon-phase-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.city-moon-info-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    text-align: center;
+    transition: var(--transition-default);
+    border: 1px solid var(--border-color);
+}
+
+.city-moon-info-card:hover {
+    background: var(--bg-color);
+    transform: translateY(-1px);
+}
+
+.city-moon-times {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: var(--spacing-sm);
+}
+
+.city-moon-time {
+    text-align: center;
+}
+
+.city-moon-time-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.city-moon-time-value {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.city-moon-phase-info {
+    margin-bottom: var(--spacing-sm);
+}
+
+.city-moon-phase-name {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.city-moon-phase-icon {
+    font-size: var(--font-size-sm);
+    color: var(--accent-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.city-moon-illumination {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* 加载状态样式 */
+.loading-indices,
+.loading-air-quality,
+.loading-moon-phase {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-sm);
+    font-style: italic;
+}
+
+/* 暂无数据样式 */
+.no-data {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-sm);
+    font-style: italic;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .city-detailed-info {
+        margin-top: var(--spacing-sm);
+        padding-top: var(--spacing-sm);
+    }
+    
+    .city-info-section {
+        padding: var(--spacing-xs);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .city-indices-grid {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 3px;
+        max-height: 70px;
+    }
+    
+    .city-index-item {
+        min-height: 28px;
+        padding: 1px;
+    }
+    
+    .city-index-name {
+        font-size: 7px;
+        font-weight: 600;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        height: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-index-level {
+        font-size: 10px;
+        font-weight: 700;
+        height: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-index-category {
+        font-size: 6px;
+        font-weight: 500;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        height: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-pollutants-grid {
+        grid-template-columns: repeat(3, 1fr);
+        padding: var(--spacing-xs);
+        gap: 4px;
+    }
+    
+    .city-aqi-card {
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .city-pollutant-item {
+        padding: 3px;
+    }
+    
+    .city-pollutant-name {
+        font-size: 9px;
+        margin-bottom: 1px;
+    }
+    
+    .city-pollutant-value {
+        font-size: 10px;
+        margin-bottom: 1px;
+    }
+    
+    .city-pollutant-unit {
+        font-size: 7px;
+    }
+    
+    .city-moon-times {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .city-info-title {
+        font-size: var(--font-size-xs);
+    }
+    
+    .city-indices-grid {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 2px;
+        max-height: 60px;
+    }
+    
+    .city-index-item {
+        min-height: 26px;
+        padding: 1px;
+    }
+    
+    .city-index-name {
+        font-size: 6px;
+        font-weight: 600;
+        margin-bottom: 0px;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        height: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-index-level {
+        font-size: 9px;
+        font-weight: 700;
+        margin-bottom: 0px;
+        height: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-index-category {
+        font-size: 5px;
+        font-weight: 500;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        height: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-aqi-card {
+        padding: var(--spacing-xs);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .city-pollutants-grid {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 4px;
+        gap: 2px;
+    }
+    
+    .city-pollutant-item {
+        padding: 2px;
+    }
+    
+    .city-pollutant-name {
+        font-size: 8px;
+        margin-bottom: 1px;
+    }
+    
+    .city-pollutant-value {
+        font-size: 9px;
+        margin-bottom: 1px;
+    }
+    
+    .city-pollutant-unit {
+        font-size: 6px;
+    }
+    
+    .city-moon-info-card {
+        padding: var(--spacing-xs);
+    }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+    .city-indices-grid {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 5px;
+        max-height: 90px;
+    }
+    
+    .city-index-item {
+        min-height: 36px;
+        padding: 3px 2px;
+    }
+    
+    .city-index-name {
+        font-size: 9px;
+        font-weight: 600;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        height: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-index-level {
+        font-size: 12px;
+        font-weight: 700;
+        height: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .city-index-category {
+        font-size: 8px;
+        font-weight: 500;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        height: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

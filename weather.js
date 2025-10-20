@@ -916,7 +916,7 @@ class WeatherApp {
     }
     
     // 更新多城市显示
-    updateCitiesDisplay() {
+    async updateCitiesDisplay() {
         if (!this.citiesGrid) {
             console.error('cities-grid 元素未找到');
             return;
@@ -933,6 +933,9 @@ class WeatherApp {
                 this.citiesGrid.appendChild(cityCard);
             }
         });
+        
+        // 为每个城市加载详细信息
+        await this.loadAllCitiesDetailedInfo();
     }
     
     // 创建城市天气卡片
@@ -1019,6 +1022,42 @@ class WeatherApp {
                     ${forecast15dHtml}
                 </div>
             </div>
+            
+            <!-- 详细信息区域 -->
+            <div class="city-detailed-info">
+                <!-- 天气指数 -->
+                <div class="city-info-section" id="weather-indices-${cityData.cityName}">
+                    <div class="city-info-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>天气指数</span>
+                    </div>
+                    <div class="city-indices-grid" id="indices-${cityData.cityName}">
+                        <div class="loading-indices">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 空气质量 -->
+                <div class="city-info-section" id="air-quality-${cityData.cityName}">
+                    <div class="city-info-title">
+                        <i class="fas fa-wind"></i>
+                        <span>空气质量</span>
+                    </div>
+                    <div class="city-air-quality-content" id="air-quality-${cityData.cityName}">
+                        <div class="loading-air-quality">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 月相信息 -->
+                <div class="city-info-section" id="moon-phase-${cityData.cityName}">
+                    <div class="city-info-title">
+                        <i class="fas fa-moon"></i>
+                        <span>月相信息</span>
+                    </div>
+                    <div class="city-moon-phase-content" id="moon-phase-${cityData.cityName}">
+                        <div class="loading-moon-phase">加载中...</div>
+                    </div>
+                </div>
+            </div>
         `;
         
         return card;
@@ -1049,6 +1088,288 @@ class WeatherApp {
         const weekday = weekdays[date.getDay()];
         
         return `${month}/${day} 周${weekday}`;
+    }
+
+    // 为所有城市加载详细信息
+    async loadAllCitiesDetailedInfo() {
+        console.log('🔍 开始为所有城市加载详细信息...');
+        
+        // 并发为所有城市加载详细信息
+        const promises = this.cities.map(city => this.loadCityDetailedInfo(city));
+        await Promise.allSettled(promises);
+        
+        console.log('✅ 所有城市详细信息加载完成');
+    }
+
+    // 为单个城市加载详细信息
+    async loadCityDetailedInfo(city) {
+        try {
+            console.log(`🔍 为城市 ${city.name} 加载详细信息...`);
+            
+            // 并发获取该城市的所有详细信息
+            const [weatherIndices, airQuality, moonPhase] = await Promise.allSettled([
+                this.fetchWeatherIndices(city.id),
+                this.fetchAirQuality(city.id),
+                this.fetchMoonPhase(city.id)
+            ]);
+            
+            // 更新该城市的显示
+            this.updateCityWeatherIndicesDisplay(city.name, weatherIndices.status === 'fulfilled' ? weatherIndices.value : null);
+            this.updateCityAirQualityDisplay(city.name, airQuality.status === 'fulfilled' ? airQuality.value : null);
+            this.updateCityMoonPhaseDisplay(city.name, moonPhase.status === 'fulfilled' ? moonPhase.value : null);
+            
+            console.log(`✅ 城市 ${city.name} 详细信息加载完成`);
+        } catch (error) {
+            console.error(`❌ 城市 ${city.name} 详细信息加载失败:`, error);
+            // 显示默认内容
+            this.updateCityWeatherIndicesDisplay(city.name, null);
+            this.updateCityAirQualityDisplay(city.name, null);
+            this.updateCityMoonPhaseDisplay(city.name, null);
+        }
+    }
+
+    // 获取天气指数
+    async fetchWeatherIndices(location) {
+        // 获取多种天气指数：运动、洗车、穿衣、感冒、紫外线
+        const indicesUrl = `${this.baseUrl}/indices/1d?location=${location}&type=1,2,3,4,5&key=${this.apiKey}`;
+        
+        try {
+            const response = await fetch(indicesUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data.code !== '200') {
+                throw new Error(`API错误: ${data.code}`);
+            }
+            
+            return data.daily || [];
+        } catch (error) {
+            console.error('获取天气指数失败:', error);
+            throw error;
+        }
+    }
+
+    // 获取空气质量
+    async fetchAirQuality(location) {
+        // 使用经纬度获取空气质量（需要先获取城市坐标）
+        const geoUrl = `https://${this.apiHost}/geo/v2/city/lookup?location=${location}&key=${this.apiKey}`;
+        
+        try {
+            const geoResponse = await fetch(geoUrl);
+            const geoData = await geoResponse.json();
+            
+            if (geoData.code !== '200' || !geoData.location || geoData.location.length === 0) {
+                throw new Error('无法获取城市坐标');
+            }
+            
+            const cityInfo = geoData.location[0];
+            const lat = cityInfo.lat;
+            const lon = cityInfo.lon;
+            
+            // 获取空气质量数据
+            const airQualityUrl = `https://${this.apiHost}/airquality/v1/current/${lat}/${lon}?key=${this.apiKey}`;
+            const airResponse = await fetch(airQualityUrl);
+            
+            if (!airResponse.ok) {
+                throw new Error(`HTTP错误: ${airResponse.status}`);
+            }
+            
+            const airData = await airResponse.json();
+            return airData;
+        } catch (error) {
+            console.error('获取空气质量失败:', error);
+            throw error;
+        }
+    }
+
+    // 获取月相信息
+    async fetchMoonPhase(location) {
+        // 获取今天的月相信息
+        const today = new Date();
+        const dateStr = today.getFullYear() + 
+                       String(today.getMonth() + 1).padStart(2, '0') + 
+                       String(today.getDate()).padStart(2, '0');
+        
+        const moonUrl = `${this.baseUrl}/astronomy/moon?location=${location}&date=${dateStr}&key=${this.apiKey}`;
+        
+        try {
+            const response = await fetch(moonUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data.code !== '200') {
+                throw new Error(`API错误: ${data.code}`);
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('获取月相信息失败:', error);
+            throw error;
+        }
+    }
+
+    // 更新城市天气指数显示
+    updateCityWeatherIndicesDisplay(cityName, indicesData) {
+        const indicesGrid = document.getElementById(`indices-${cityName}`);
+        if (!indicesGrid) {
+            console.error(`找不到元素: indices-${cityName}`);
+            return;
+        }
+        
+        console.log(`更新城市 ${cityName} 的天气指数:`, indicesData);
+        
+        if (!indicesData || indicesData.length === 0) {
+            console.log(`城市 ${cityName} 没有天气指数数据`);
+            indicesGrid.innerHTML = '<div class="no-data">暂无天气指数数据</div>';
+            return;
+        }
+        
+        const indicesHtml = indicesData.map(index => {
+            console.log(`处理指数:`, index);
+            const levelClass = this.getIndexLevelClass(index.level);
+            return `
+                <div class="city-index-item">
+                    <div class="city-index-name">${index.name || '未知'}</div>
+                    <div class="city-index-level ${levelClass}">${index.level || '--'}</div>
+                    <div class="city-index-category">${index.category || '--'}</div>
+                </div>
+            `;
+        }).join('');
+        
+        console.log(`城市 ${cityName} 天气指数HTML:`, indicesHtml);
+        indicesGrid.innerHTML = indicesHtml;
+    }
+
+    // 更新城市空气质量显示
+    updateCityAirQualityDisplay(cityName, airQualityData) {
+        const airQualityContent = document.getElementById(`air-quality-${cityName}`);
+        if (!airQualityContent) return;
+        
+        if (!airQualityData || !airQualityData.indexes) {
+            airQualityContent.innerHTML = '<div class="no-data">暂无空气质量数据</div>';
+            return;
+        }
+        
+        // 只显示主要的AQI指数 - 优先使用中国标准cn-mee
+        const mainAQI = airQualityData.indexes.find(index => 
+            index.code === 'cn-mee' || index.code === 'qaqi' || index.code === 'us-epa'
+        ) || airQualityData.indexes[0];
+        const levelClass = this.getAQILevelClass(mainAQI.aqi);
+        
+        const aqiHtml = `
+            <div class="city-aqi-card">
+                <div class="city-aqi-title">${mainAQI.name}</div>
+                <div class="city-aqi-value ${levelClass}">${mainAQI.aqiDisplay}</div>
+                <div class="city-aqi-level">${mainAQI.category}</div>
+            </div>
+        `;
+        
+        // 添加主要污染物信息
+        let pollutantsHtml = '';
+        if (airQualityData.pollutants && airQualityData.pollutants.length > 0) {
+            const mainPollutants = airQualityData.pollutants.slice(0, 3); // 只显示前3个
+            pollutantsHtml = `
+                <div class="city-pollutants-grid">
+                    ${mainPollutants.map(pollutant => `
+                        <div class="city-pollutant-item">
+                            <div class="city-pollutant-name">${pollutant.name}</div>
+                            <div class="city-pollutant-value">${pollutant.concentration.value}</div>
+                            <div class="city-pollutant-unit">${pollutant.concentration.unit}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        airQualityContent.innerHTML = `
+            <div class="city-info-title">
+                <i class="fas fa-wind"></i>
+                <span>空气质量</span>
+            </div>
+            ${aqiHtml}
+            ${pollutantsHtml}
+        `;
+    }
+
+    // 更新城市月相信息显示
+    updateCityMoonPhaseDisplay(cityName, moonData) {
+        const moonPhaseContent = document.getElementById(`moon-phase-${cityName}`);
+        if (!moonPhaseContent) return;
+        
+        if (!moonData) {
+            moonPhaseContent.innerHTML = '<div class="no-data">暂无月相数据</div>';
+            return;
+        }
+        
+        // 月升月落时间
+        const moonTimesHtml = `
+            <div class="city-moon-times">
+                <div class="city-moon-time">
+                    <div class="city-moon-time-label">月升</div>
+                    <div class="city-moon-time-value">${moonData.moonrise ? this.formatTime(moonData.moonrise) : '--'}</div>
+                </div>
+                <div class="city-moon-time">
+                    <div class="city-moon-time-label">月落</div>
+                    <div class="city-moon-time-value">${moonData.moonset ? this.formatTime(moonData.moonset) : '--'}</div>
+                </div>
+            </div>
+        `;
+        
+        // 当前月相信息
+        const currentPhase = moonData.moonPhase && moonData.moonPhase.length > 0 ? moonData.moonPhase[0] : null;
+        const phaseInfoHtml = currentPhase ? `
+            <div class="city-moon-phase-info">
+                <div class="city-moon-phase-name">${currentPhase.name}</div>
+                <div class="city-moon-phase-icon">🌙</div>
+                <div class="city-moon-illumination">照明度: ${currentPhase.illumination}%</div>
+            </div>
+        ` : '<div class="city-moon-phase-info">暂无月相信息</div>';
+        
+        moonPhaseContent.innerHTML = `
+            <div class="city-info-title">
+                <i class="fas fa-moon"></i>
+                <span>月相信息</span>
+            </div>
+            <div class="city-moon-info-card">
+                ${moonTimesHtml}
+                ${phaseInfoHtml}
+            </div>
+        `;
+    }
+
+    // 获取指数等级样式类
+    getIndexLevelClass(level) {
+        const levelNum = parseInt(level);
+        if (levelNum <= 1) return 'excellent';
+        if (levelNum <= 2) return 'good';
+        if (levelNum <= 3) return 'moderate';
+        if (levelNum <= 4) return 'unhealthy';
+        return 'hazardous';
+    }
+
+    // 获取AQI等级样式类
+    getAQILevelClass(aqi) {
+        const aqiNum = parseInt(aqi);
+        if (aqiNum <= 50) return 'excellent';
+        if (aqiNum <= 100) return 'good';
+        if (aqiNum <= 150) return 'moderate';
+        if (aqiNum <= 200) return 'unhealthy';
+        return 'hazardous';
+    }
+
+    // 格式化时间
+    formatTime(timeString) {
+        if (!timeString) return '--';
+        const date = new Date(timeString);
+        return date.toLocaleTimeString('zh-CN', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
     }
 
     startAutoRefresh(intervalMinutes = 10) {
