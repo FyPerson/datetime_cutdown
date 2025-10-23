@@ -15,8 +15,26 @@ class WeatherApp {
             { name: '婺源', id: '101240303' },
             { name: '景德镇', id: '101240801' },
             { name: '天津', id: '101030100' },
-            { name: '玉田', id: '101090502' }
+            { name: 'CITY_SELECTOR', id: 'CITY_SELECTOR' } // 城市选择器占位符
         ];
+        
+        // 热门城市列表
+        this.popularCities = [
+            { name: '北京', id: '101010100' },
+            { name: '上海', id: '101020100' },
+            { name: '广州', id: '101280101' },
+            { name: '深圳', id: '101280601' },
+            { name: '成都', id: '101270101' },
+            { name: '武汉', id: '101200101' },
+            { name: '西安', id: '101110101' },
+            { name: '南京', id: '101190101' }
+        ];
+        
+        // 用户选择的历史城市
+        this.historyCities = JSON.parse(localStorage.getItem('weatherHistoryCities') || '[]');
+        
+        // 当前选择的城市
+        this.selectedCity = null;
         
         this.citiesData = {}; // 存储各城市天气数据
         this.citiesGrid = document.getElementById('cities-grid');
@@ -46,6 +64,7 @@ class WeatherApp {
         this.setupEventListeners();
         this.loadWeatherData();
         this.setupThemeToggle();
+        this.initGlobalSearch();
     }
 
     setupEventListeners() {
@@ -929,19 +948,50 @@ class WeatherApp {
         
         // 为每个城市创建卡片
         this.cities.forEach(city => {
-            const cityData = this.citiesData[city.name];
-            if (cityData) {
-                const cityCard = this.createCityCard(cityData);
+            if (city.name === 'CITY_SELECTOR') {
+                // 为城市选择器创建特殊的数据对象
+                const selectorData = {
+                    cityName: 'CITY_SELECTOR',
+                    temperature: '-',
+                    tempMin: '-',
+                    tempMax: '-',
+                    weatherText: '-',
+                    humidity: '-',
+                    windDir: '-',
+                    windSpeed: '-',
+                    pressure: '-',
+                    visibility: '-',
+                    feelsLike: '-',
+                    icon: 'fa-cloud',
+                    updateTime: new Date().toLocaleString('zh-CN')
+                };
+                const cityCard = this.createCityCard(selectorData);
                 this.citiesGrid.appendChild(cityCard);
+            } else {
+                const cityData = this.citiesData[city.name];
+                if (cityData) {
+                    const cityCard = this.createCityCard(cityData);
+                    this.citiesGrid.appendChild(cityCard);
+                }
             }
         });
         
-        // 为每个城市加载详细信息
+        // 为每个城市加载详细信息（包括城市选择器）
         await this.loadAllCitiesDetailedInfo();
+        
+        // 如果城市选择器已选择城市，为其加载详细信息
+        if (this.selectedCity) {
+            await this.loadCitySelectorDetailedInfo();
+        }
     }
     
     // 创建城市天气卡片
     createCityCard(cityData) {
+        // 如果是城市选择器，创建特殊的选择器卡片
+        if (cityData.cityName === 'CITY_SELECTOR') {
+            return this.createCitySelectorCard();
+        }
+        
         const card = document.createElement('div');
         card.className = 'city-weather-card';
         card.setAttribute('data-city', cityData.cityName);
@@ -1065,6 +1115,667 @@ class WeatherApp {
         return card;
     }
     
+    // 创建城市选择器卡片
+    createCitySelectorCard() {
+        const card = document.createElement('div');
+        card.className = 'city-weather-card';
+        card.setAttribute('data-city', 'CITY_SELECTOR');
+        
+        // 获取当前选择的城市名称
+        const currentCityName = this.selectedCity ? this.selectedCity.name : '选择城市';
+        
+        // 生成15天数据HTML，从次日开始，全部展开
+        const forecast15dHtml = this.selectedCity && this.citiesData[this.selectedCity.name] && this.citiesData[this.selectedCity.name].forecast15d && this.citiesData[this.selectedCity.name].forecast15d.length > 1
+            ? this.citiesData[this.selectedCity.name].forecast15d.slice(1).map(day => `
+                <div class="forecast-day">
+                    <div class="forecast-date">${this.formatDate(day.date)}</div>
+                    <div class="forecast-temp">${day.tempMin}°-${day.tempMax}°</div>
+                    <div class="forecast-weather">${day.weather}</div>
+                </div>
+            `).join('')
+            : '<div class="forecast-day">暂无数据</div>';
+        
+        card.innerHTML = `
+            <div class="city-name">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <span class="city-selector-trigger">${currentCityName}</span>
+            </div>
+            
+            <!-- 城市选择下拉框 - 只在点击时显示 -->
+            <div class="city-selector-dropdown">
+                <div class="city-search-box">
+                    <input type="text" 
+                           class="city-search-input" 
+                           placeholder="搜索城市名称..." 
+                           autocomplete="off">
+                    <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                </div>
+                
+                <div class="city-search-results">
+                    <div class="search-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>搜索中...</span>
+                    </div>
+                    <div class="search-error" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>搜索失败，请重试</span>
+                    </div>
+                    <div class="city-list-container">
+                        <!-- 热门城市 -->
+                        <div class="city-section">
+                            <div class="city-section-title">
+                                <i class="fas fa-fire"></i>
+                                <span>热门城市</span>
+                            </div>
+                            <div class="city-section-list popular-cities">
+                                ${this.popularCities.map(city => `
+                                    <div class="city-item popular-city" data-city-id="${city.id}" data-city-name="${city.name}">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>${city.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <!-- 历史城市 -->
+                        ${this.historyCities.length > 0 ? `
+                        <div class="city-section">
+                            <div class="city-section-title">
+                                <i class="fas fa-history"></i>
+                                <span>最近选择</span>
+                            </div>
+                            <div class="city-section-list history-cities">
+                                ${this.historyCities.slice(0, 5).map(city => `
+                                    <div class="city-item history-city" data-city-id="${city.id}" data-city-name="${city.name}">
+                                        <i class="fas fa-clock"></i>
+                                        <span>${city.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- 搜索结果 -->
+                        <div class="city-section search-results" style="display: none;">
+                            <div class="city-section-title">
+                                <i class="fas fa-search"></i>
+                                <span>搜索结果</span>
+                            </div>
+                            <div class="city-section-list search-results-list">
+                                <!-- 搜索结果将动态插入这里 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="city-temp-display">
+                <div class="temp-current">
+                    <span class="temp-value">--</span>
+                    <span class="temp-unit">°C</span>
+                </div>
+                <div class="temp-range">
+                    <span class="temp-min">--</span>
+                    <span class="temp-separator">-</span>
+                    <span class="temp-max">--</span>
+                    <span class="temp-unit-range">°C</span>
+                </div>
+            </div>
+            
+            <div class="city-weather-desc">
+                <i class="fas fa-cloud city-weather-icon" aria-hidden="true"></i>
+                <span class="city-weather-text">--</span>
+            </div>
+            
+            <div class="city-details">
+                <div class="city-detail-item">
+                    <span class="city-detail-label">湿度</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">风向</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">风速</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">气压</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">能见度</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">体感</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">降水量</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+                <div class="city-detail-item">
+                    <span class="city-detail-label">云量</span>
+                    <span class="city-detail-value">--</span>
+                </div>
+            </div>
+            
+            <div class="forecast-15d">
+                <div class="forecast-title">未来14天</div>
+                <div class="forecast-days">
+                    ${forecast15dHtml}
+                </div>
+            </div>
+            
+            <!-- 详细信息区域 -->
+            <div class="city-detailed-info">
+                <!-- 天气指数 -->
+                <div class="city-info-section" id="weather-indices-CITY_SELECTOR">
+                    <div class="city-info-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>天气指数</span>
+                    </div>
+                    <div class="city-indices-grid" id="indices-CITY_SELECTOR">
+                        <div class="loading-indices">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 空气质量 -->
+                <div class="city-info-section" id="air-quality-CITY_SELECTOR">
+                    <div class="city-info-title">
+                        <i class="fas fa-wind"></i>
+                        <span>空气质量</span>
+                    </div>
+                    <div class="city-air-quality-content" id="air-quality-CITY_SELECTOR">
+                        <div class="loading-air-quality">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 天文信息 -->
+                <div class="city-info-section" id="astronomy-CITY_SELECTOR">
+                    <div class="city-info-title">
+                        <i class="fas fa-star"></i>
+                        <span>天文信息</span>
+                    </div>
+                    <div class="city-astronomy-content" id="astronomy-CITY_SELECTOR">
+                        <div class="loading-astronomy">加载中...</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 绑定事件监听器
+        this.bindCitySelectorEvents(card);
+        
+        return card;
+    }
+    
+    // 初始化全局搜索框
+    initGlobalSearch() {
+        const globalSearchInput = document.getElementById('global-search-box');
+        const popularCitiesList = document.getElementById('popular-cities-list');
+        
+        if (globalSearchInput) {
+            // 搜索输入事件
+            let searchTimeout;
+            globalSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                clearTimeout(searchTimeout);
+                if (query.length > 0) {
+                    searchTimeout = setTimeout(() => {
+                        this.searchCitiesGlobally(query);
+                    }, 300);
+                } else {
+                    this.showPopularCities();
+                }
+            });
+            
+            // 键盘事件
+            globalSearchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = e.target.value.trim();
+                    if (query.length > 0) {
+                        this.searchCitiesGlobally(query);
+                    }
+                }
+            });
+        }
+        
+        // 显示热门城市
+        this.showPopularCities();
+    }
+    
+    // 显示热门城市
+    showPopularCities() {
+        const popularCitiesList = document.getElementById('popular-cities-list');
+        if (popularCitiesList) {
+            popularCitiesList.innerHTML = this.popularCities.map(city => `
+                <div class="popular-city-item" data-city-id="${city.id}" data-city-name="${city.name}">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${city.name}</span>
+                </div>
+            `).join('');
+            
+            // 绑定点击事件
+            popularCitiesList.querySelectorAll('.popular-city-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const cityId = item.getAttribute('data-city-id');
+                    const cityName = item.getAttribute('data-city-name');
+                    this.selectCityFromGlobalSearch({ id: cityId, name: cityName });
+                });
+            });
+        }
+    }
+    
+    // 全局搜索城市
+    async searchCitiesGlobally(query) {
+        const popularCitiesList = document.getElementById('popular-cities-list');
+        if (!popularCitiesList) return;
+        
+        try {
+            popularCitiesList.innerHTML = '<div class="search-loading">搜索中...</div>';
+            
+            const cities = await this.searchCitiesFromAPI(query);
+            
+            if (cities && cities.length > 0) {
+                popularCitiesList.innerHTML = cities.slice(0, 10).map(city => `
+                    <div class="popular-city-item" data-city-id="${city.id}" data-city-name="${city.name}">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${city.name}</span>
+                    </div>
+                `).join('');
+                
+                // 绑定点击事件
+                popularCitiesList.querySelectorAll('.popular-city-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const cityId = item.getAttribute('data-city-id');
+                        const cityName = item.getAttribute('data-city-name');
+                        this.selectCityFromGlobalSearch({ id: cityId, name: cityName });
+                    });
+                });
+            } else {
+                popularCitiesList.innerHTML = '<div class="search-error">未找到相关城市</div>';
+            }
+        } catch (error) {
+            console.error('全局搜索失败:', error);
+            popularCitiesList.innerHTML = '<div class="search-error">搜索失败，请重试</div>';
+        }
+    }
+    
+    // 从全局搜索选择城市
+    selectCityFromGlobalSearch(city) {
+        // 清空搜索框
+        const globalSearchInput = document.getElementById('global-search-box');
+        if (globalSearchInput) {
+            globalSearchInput.value = '';
+        }
+        
+        // 选择城市
+        this.selectedCity = city;
+        this.addToHistory(city);
+        
+        // 更新城市选择器显示
+        const citySelectorCard = document.querySelector('[data-city="CITY_SELECTOR"]');
+        if (citySelectorCard) {
+            this.updateCitySelectorDisplay(citySelectorCard);
+            this.loadSelectedCityWeather(city, citySelectorCard);
+        }
+        
+        // 显示热门城市
+        this.showPopularCities();
+    }
+    
+    // 绑定城市选择器事件
+    bindCitySelectorEvents(card) {
+        const cityNameElement = card.querySelector('.city-name');
+        const dropdown = card.querySelector('.city-selector-dropdown');
+        const searchInput = card.querySelector('.city-search-input');
+        const cityItems = card.querySelectorAll('.city-item');
+        
+        // 点击城市名称显示/隐藏下拉框
+        cityNameElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleCitySelectorDropdown(card);
+        });
+        
+        // 搜索输入事件
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                // 清除之前的定时器
+                clearTimeout(searchTimeout);
+                
+                if (query.length === 0) {
+                    this.hideSearchResults(card);
+                    return;
+                }
+                
+                // 防抖处理，500ms后执行搜索
+                searchTimeout = setTimeout(() => {
+                    this.searchCities(query, card);
+                }, 500);
+            });
+            
+            // 搜索框获得焦点时显示下拉框
+            searchInput.addEventListener('focus', () => {
+                this.showCitySelectorDropdown(card);
+            });
+        }
+        
+        // 城市项点击事件
+        cityItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const cityId = item.getAttribute('data-city-id');
+                const cityName = item.getAttribute('data-city-name');
+                
+                if (cityId && cityName) {
+                    this.selectCity({ id: cityId, name: cityName }, card);
+                }
+            });
+        });
+        
+        // 点击外部关闭下拉框（使用一次性监听器避免重复）
+        const globalClickHandler = (e) => {
+            if (!card.contains(e.target)) {
+                this.hideCitySelectorDropdown(card);
+            }
+        };
+        
+        // 移除之前的监听器（如果存在）
+        if (card._globalClickHandler) {
+            document.removeEventListener('click', card._globalClickHandler);
+        }
+        
+        // 添加新的监听器
+        document.addEventListener('click', globalClickHandler);
+        card._globalClickHandler = globalClickHandler;
+        
+        // 键盘事件支持
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.hideCitySelectorDropdown(card);
+            }
+        });
+    }
+    
+    // 切换城市选择器下拉框显示状态
+    toggleCitySelectorDropdown(card) {
+        const dropdown = card.querySelector('.city-selector-dropdown');
+        const arrow = card.querySelector('.selector-arrow');
+        
+        if (dropdown.style.display === 'none' || !dropdown.style.display) {
+            this.showCitySelectorDropdown(card);
+        } else {
+            this.hideCitySelectorDropdown(card);
+        }
+    }
+    
+    // 显示城市选择器下拉框
+    showCitySelectorDropdown(card) {
+        const dropdown = card.querySelector('.city-selector-dropdown');
+        
+        dropdown.classList.add('show');
+        
+        // 聚焦到搜索框
+        const searchInput = card.querySelector('.city-search-input');
+        if (searchInput) {
+            setTimeout(() => searchInput.focus(), 100);
+        }
+    }
+    
+    // 隐藏城市选择器下拉框
+    hideCitySelectorDropdown(card) {
+        const dropdown = card.querySelector('.city-selector-dropdown');
+        const searchInput = card.querySelector('.city-search-input');
+        
+        dropdown.classList.remove('show');
+        
+        // 清空搜索框
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        // 隐藏搜索结果
+        this.hideSearchResults(card);
+    }
+    
+    // 搜索城市
+    async searchCities(query, card) {
+        const searchResults = card.querySelector('.search-results');
+        const searchResultsList = card.querySelector('.search-results-list');
+        const searchLoading = card.querySelector('.search-loading');
+        const searchError = card.querySelector('.search-error');
+        
+        // 显示加载状态
+        searchLoading.style.display = 'block';
+        searchError.style.display = 'none';
+        searchResults.style.display = 'none';
+        
+        try {
+            // 使用和风API搜索城市
+            const cities = await this.searchCitiesFromAPI(query);
+            
+            // 隐藏加载状态
+            searchLoading.style.display = 'none';
+            
+            if (cities && cities.length > 0) {
+                // 显示搜索结果
+                searchResultsList.innerHTML = cities.map(city => `
+                    <div class="city-item search-city" data-city-id="${city.id}" data-city-name="${city.name}">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${city.name}</span>
+                        <span class="city-province">${city.adm1 || ''}</span>
+                    </div>
+                `).join('');
+                
+                // 重新绑定搜索结果的事件
+                const newCityItems = searchResultsList.querySelectorAll('.city-item');
+                newCityItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const cityId = item.getAttribute('data-city-id');
+                        const cityName = item.getAttribute('data-city-name');
+                        
+                        if (cityId && cityName) {
+                            this.selectCity({ id: cityId, name: cityName }, card);
+                        }
+                    });
+                });
+                
+                searchResults.style.display = 'block';
+            } else {
+                // 没有搜索结果
+                searchResultsList.innerHTML = '<div class="no-results">未找到相关城市</div>';
+                searchResults.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('搜索城市失败:', error);
+            searchLoading.style.display = 'none';
+            searchError.style.display = 'block';
+        }
+    }
+    
+    // 使用API搜索城市
+    async searchCitiesFromAPI(query) {
+        try {
+            const geoApiUrl = `https://${this.apiHost}/geo/v2/city/lookup`;
+            const searchUrl = `${geoApiUrl}?location=${encodeURIComponent(query)}&key=${this.apiKey}`;
+            
+            const response = await fetch(searchUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data.code !== '200' || !data.location) {
+                return [];
+            }
+            
+            // 限制返回结果数量，避免列表过长
+            return data.location.slice(0, 10).map(city => ({
+                id: city.id,
+                name: city.name,
+                adm1: city.adm1, // 省份
+                adm2: city.adm2  // 城市
+            }));
+        } catch (error) {
+            console.error('API搜索城市失败:', error);
+            throw error;
+        }
+    }
+    
+    // 隐藏搜索结果
+    hideSearchResults(card) {
+        const searchResults = card.querySelector('.search-results');
+        const searchLoading = card.querySelector('.search-loading');
+        const searchError = card.querySelector('.search-error');
+        
+        searchResults.style.display = 'none';
+        searchLoading.style.display = 'none';
+        searchError.style.display = 'none';
+    }
+    
+    // 选择城市
+    async selectCity(city, card) {
+        console.log('选择城市:', city);
+        
+        // 更新当前选择的城市
+        this.selectedCity = city;
+        
+        // 添加到历史记录
+        this.addToHistory(city);
+        
+        // 更新UI显示
+        this.updateCitySelectorDisplay(card);
+        
+        // 隐藏下拉框
+        this.hideCitySelectorDropdown(card);
+        
+        // 加载该城市的天气数据
+        await this.loadSelectedCityWeather(city, card);
+    }
+    
+    // 添加到历史记录
+    addToHistory(city) {
+        // 移除已存在的相同城市
+        this.historyCities = this.historyCities.filter(c => c.id !== city.id);
+        
+        // 添加到开头
+        this.historyCities.unshift(city);
+        
+        // 限制历史记录数量
+        this.historyCities = this.historyCities.slice(0, 10);
+        
+        // 保存到本地存储
+        localStorage.setItem('weatherHistoryCities', JSON.stringify(this.historyCities));
+    }
+    
+    // 更新城市选择器显示
+    updateCitySelectorDisplay(card) {
+        const citySelectorTrigger = card.querySelector('.city-selector-trigger');
+        if (citySelectorTrigger && this.selectedCity) {
+            citySelectorTrigger.textContent = this.selectedCity.name;
+        }
+    }
+    
+    // 加载选中城市的天气数据
+    async loadSelectedCityWeather(city, card) {
+        try {
+            console.log(`加载城市 ${city.name} 的天气数据...`);
+            
+            // 获取天气数据
+            const weatherData = await this.fetchCityWeatherAndForecast(city);
+            
+            // 将天气数据存储到citiesData中
+            this.citiesData[city.name] = weatherData;
+            
+            // 更新卡片显示
+            this.updateCitySelectorWeatherInfo(card, weatherData);
+            
+            // 加载详细信息
+            await this.loadCitySelectorDetailedInfo();
+            
+            console.log(`城市 ${city.name} 天气数据加载完成`);
+        } catch (error) {
+            console.error(`加载城市 ${city.name} 天气数据失败:`, error);
+            // 显示错误状态
+            this.updateCitySelectorWeatherInfo(card, null);
+        }
+    }
+    
+    // 更新城市选择器的天气信息显示
+    updateCitySelectorWeatherInfo(card, weatherData) {
+        if (!weatherData) {
+            // 显示默认状态
+            card.querySelector('.temp-value').textContent = '--';
+            card.querySelector('.temp-min').textContent = '--';
+            card.querySelector('.temp-max').textContent = '--';
+            card.querySelector('.city-weather-text').textContent = '--';
+            
+            const detailValues = card.querySelectorAll('.city-detail-value');
+            detailValues.forEach(value => value.textContent = '--');
+            
+            // 清空15天预报
+            const forecastDays = card.querySelector('.forecast-days');
+            if (forecastDays) {
+                forecastDays.innerHTML = '<div class="forecast-day">暂无数据</div>';
+            }
+            return;
+        }
+        
+        // 更新温度信息
+        card.querySelector('.temp-value').textContent = weatherData.temperature || '--';
+        card.querySelector('.temp-min').textContent = weatherData.tempMin || '--';
+        card.querySelector('.temp-max').textContent = weatherData.tempMax || '--';
+        card.querySelector('.city-weather-text').textContent = weatherData.weatherText || '--';
+        
+        // 更新天气图标
+        const weatherIcon = card.querySelector('.city-weather-icon');
+        if (weatherIcon) {
+            weatherIcon.className = `fas ${this.getWeatherIcon(weatherData.weatherText)} city-weather-icon`;
+        }
+        
+        // 更新详细信息
+        const detailValues = card.querySelectorAll('.city-detail-value');
+        if (detailValues.length >= 8) {
+            detailValues[0].textContent = weatherData.humidity !== '-' ? `${weatherData.humidity}%` : '--';
+            detailValues[1].textContent = weatherData.windDir || '--';
+            detailValues[2].textContent = weatherData.windSpeed !== '-' ? `${weatherData.windSpeed}km/h` : '--';
+            detailValues[3].textContent = weatherData.pressure !== '-' ? `${weatherData.pressure}hPa` : '--';
+            detailValues[4].textContent = weatherData.visibility !== '-' ? `${weatherData.visibility}km` : '--';
+            detailValues[5].textContent = weatherData.feelsLike !== '-' ? `${weatherData.feelsLike}°C` : '--';
+            
+            // 降水量和云量
+            if (weatherData.forecast15d && weatherData.forecast15d.length > 0) {
+                detailValues[6].textContent = weatherData.forecast15d[0].precip !== '-' ? `${weatherData.forecast15d[0].precip}mm` : '--';
+            } else {
+                detailValues[6].textContent = '--';
+            }
+            detailValues[7].textContent = weatherData.cloud !== '-' ? `${weatherData.cloud}%` : '--';
+        }
+        
+        // 更新15天预报
+        if (weatherData.forecast15d && weatherData.forecast15d.length > 1) {
+            const forecastDays = card.querySelector('.forecast-days');
+            if (forecastDays) {
+                forecastDays.innerHTML = weatherData.forecast15d.slice(1).map(day => `
+                    <div class="forecast-day">
+                        <div class="forecast-date">${this.formatDate(day.date)}</div>
+                        <div class="forecast-temp">${day.tempMin}°-${day.tempMax}°</div>
+                        <div class="forecast-weather">${day.weather}</div>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+    
     // 根据天气状况获取图标
     getWeatherIcon(weatherText) {
         const iconMap = {
@@ -1096,13 +1807,48 @@ class WeatherApp {
     async loadAllCitiesDetailedInfo() {
         console.log('🔍 开始为所有城市加载详细信息...');
         
-        // 并发为所有城市加载详细信息
-        const promises = this.cities.map(city => this.loadCityDetailedInfo(city));
+        // 并发为所有城市加载详细信息（排除城市选择器）
+        const promises = this.cities
+            .filter(city => city.name !== 'CITY_SELECTOR')
+            .map(city => this.loadCityDetailedInfo(city));
         await Promise.allSettled(promises);
         
         console.log('✅ 所有城市详细信息加载完成');
     }
-
+    
+    // 为城市选择器加载详细信息
+    async loadCitySelectorDetailedInfo() {
+        if (!this.selectedCity) return;
+        
+        try {
+            console.log(`🔍 为城市选择器加载城市 ${this.selectedCity.name} 的详细信息...`);
+            
+            // 并发获取该城市的所有详细信息
+            const [weatherIndices, airQuality, moonPhase, sunTimes] = await Promise.allSettled([
+                this.fetchWeatherIndices(this.selectedCity.id),
+                this.fetchAirQuality(this.selectedCity.id),
+                this.fetchMoonPhase(this.selectedCity.id),
+                this.fetchSunTimes(this.selectedCity.id)
+            ]);
+            
+            // 更新城市选择器的显示
+            this.updateCityWeatherIndicesDisplay('CITY_SELECTOR', weatherIndices.status === 'fulfilled' ? weatherIndices.value : null);
+            this.updateCityAirQualityDisplay('CITY_SELECTOR', airQuality.status === 'fulfilled' ? airQuality.value : null);
+            this.updateCityAstronomyDisplay('CITY_SELECTOR', 
+                moonPhase.status === 'fulfilled' ? moonPhase.value : null,
+                sunTimes.status === 'fulfilled' ? sunTimes.value : null
+            );
+            
+            console.log(`✅ 城市选择器详细信息加载完成`);
+        } catch (error) {
+            console.error(`❌ 城市选择器详细信息加载失败:`, error);
+            // 显示默认内容
+            this.updateCityWeatherIndicesDisplay('CITY_SELECTOR', null);
+            this.updateCityAirQualityDisplay('CITY_SELECTOR', null);
+            this.updateCityAstronomyDisplay('CITY_SELECTOR', null, null);
+        }
+    }
+    
     // 为单个城市加载详细信息
     async loadCityDetailedInfo(city) {
         try {
