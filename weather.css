@@ -1337,86 +1337,6 @@
     }
 }
 
-/* 全局搜索框样式 */
-.search-container {
-    position: static;
-    width: 100%;
-    padding: var(--spacing-lg);
-    background: var(--bg-color);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.search-box {
-    position: relative;
-    margin-bottom: var(--spacing-md);
-}
-
-.global-search-input {
-    width: 100%;
-    padding: var(--spacing-md);
-    padding-right: 3rem;
-    background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    color: var(--text-color);
-    font-size: var(--font-size-md);
-    transition: var(--transition-default);
-}
-
-.global-search-input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-}
-
-.global-search-icon {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: var(--font-size-md);
-}
-
-.popular-cities-section {
-    margin-top: var(--spacing-md);
-}
-
-.popular-cities-title {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-    color: var(--text-color);
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-}
-
-.popular-cities-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-}
-
-.popular-city-item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    color: var(--text-color);
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-    transition: var(--transition-default);
-}
-
-.popular-city-item:hover {
-    background: var(--accent-color);
-    color: var(--bg-color);
-    transform: translateY(-2px);
-}
 
 /* 城市选择器样式 */
 .city-selector-trigger {
@@ -1431,7 +1351,7 @@
 /* 下拉框 */
 .city-selector-dropdown {
     position: absolute;
-    top: 100%;
+    top: 3%;
     left: 0;
     right: 0;
     background: var(--card-bg);

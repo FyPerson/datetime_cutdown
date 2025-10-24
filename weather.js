@@ -64,7 +64,6 @@ class WeatherApp {
         this.setupEventListeners();
         this.loadWeatherData();
         this.setupThemeToggle();
-        this.initGlobalSearch();
     }
 
     setupEventListeners() {
@@ -1312,122 +1311,9 @@ class WeatherApp {
         return card;
     }
     
-    // 初始化全局搜索框
-    initGlobalSearch() {
-        const globalSearchInput = document.getElementById('global-search-box');
-        const popularCitiesList = document.getElementById('popular-cities-list');
-        
-        if (globalSearchInput) {
-            // 搜索输入事件
-            let searchTimeout;
-            globalSearchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                
-                clearTimeout(searchTimeout);
-                if (query.length > 0) {
-                    searchTimeout = setTimeout(() => {
-                        this.searchCitiesGlobally(query);
-                    }, 300);
-                } else {
-                    this.showPopularCities();
-                }
-            });
-            
-            // 键盘事件
-            globalSearchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const query = e.target.value.trim();
-                    if (query.length > 0) {
-                        this.searchCitiesGlobally(query);
-                    }
-                }
-            });
-        }
-        
-        // 显示热门城市
-        this.showPopularCities();
-    }
     
-    // 显示热门城市
-    showPopularCities() {
-        const popularCitiesList = document.getElementById('popular-cities-list');
-        if (popularCitiesList) {
-            popularCitiesList.innerHTML = this.popularCities.map(city => `
-                <div class="popular-city-item" data-city-id="${city.id}" data-city-name="${city.name}">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>${city.name}</span>
-                </div>
-            `).join('');
-            
-            // 绑定点击事件
-            popularCitiesList.querySelectorAll('.popular-city-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const cityId = item.getAttribute('data-city-id');
-                    const cityName = item.getAttribute('data-city-name');
-                    this.selectCityFromGlobalSearch({ id: cityId, name: cityName });
-                });
-            });
-        }
-    }
     
-    // 全局搜索城市
-    async searchCitiesGlobally(query) {
-        const popularCitiesList = document.getElementById('popular-cities-list');
-        if (!popularCitiesList) return;
-        
-        try {
-            popularCitiesList.innerHTML = '<div class="search-loading">搜索中...</div>';
-            
-            const cities = await this.searchCitiesFromAPI(query);
-            
-            if (cities && cities.length > 0) {
-                popularCitiesList.innerHTML = cities.slice(0, 10).map(city => `
-                    <div class="popular-city-item" data-city-id="${city.id}" data-city-name="${city.name}">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${city.name}</span>
-                    </div>
-                `).join('');
-                
-                // 绑定点击事件
-                popularCitiesList.querySelectorAll('.popular-city-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const cityId = item.getAttribute('data-city-id');
-                        const cityName = item.getAttribute('data-city-name');
-                        this.selectCityFromGlobalSearch({ id: cityId, name: cityName });
-                    });
-                });
-            } else {
-                popularCitiesList.innerHTML = '<div class="search-error">未找到相关城市</div>';
-            }
-        } catch (error) {
-            console.error('全局搜索失败:', error);
-            popularCitiesList.innerHTML = '<div class="search-error">搜索失败，请重试</div>';
-        }
-    }
     
-    // 从全局搜索选择城市
-    selectCityFromGlobalSearch(city) {
-        // 清空搜索框
-        const globalSearchInput = document.getElementById('global-search-box');
-        if (globalSearchInput) {
-            globalSearchInput.value = '';
-        }
-        
-        // 选择城市
-        this.selectedCity = city;
-        this.addToHistory(city);
-        
-        // 更新城市选择器显示
-        const citySelectorCard = document.querySelector('[data-city="CITY_SELECTOR"]');
-        if (citySelectorCard) {
-            this.updateCitySelectorDisplay(citySelectorCard);
-            this.loadSelectedCityWeather(city, citySelectorCard);
-        }
-        
-        // 显示热门城市
-        this.showPopularCities();
-    }
     
     // 绑定城市选择器事件
     bindCitySelectorEvents(card) {
