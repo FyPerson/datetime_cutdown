@@ -12,8 +12,8 @@ class WeatherApp {
         // 多城市配置 - 使用城市ID用于每日预报
         this.cities = [
             { name: '杭州', id: '101210101' },
-            { name: '婺源', id: '101240303' },
-            { name: '景德镇', id: '101240801' },
+            { name: '济南', id: '101120101' },
+            { name: '北京', id: '101010100' },
             { name: '天津', id: '101030100' },
             { name: 'CITY_SELECTOR', id: 'CITY_SELECTOR' } // 城市选择器占位符
         ];
