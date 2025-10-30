@@ -33,8 +33,9 @@ class WeatherApp {
         // 用户选择的历史城市
         this.historyCities = JSON.parse(localStorage.getItem('weatherHistoryCities') || '[]');
         
-        // 当前选择的城市
-        this.selectedCity = null;
+        // 当前选择的城市 - 默认设置为"玉田"
+        // 玉田（河北省唐山市）的城市ID
+        this.selectedCity = { name: '玉田', id: '101090508' };
         
         this.citiesData = {}; // 存储各城市天气数据
         this.citiesGrid = document.getElementById('cities-grid');
@@ -978,8 +979,18 @@ class WeatherApp {
         // 为每个城市加载详细信息（包括城市选择器）
         await this.loadAllCitiesDetailedInfo();
         
-        // 如果城市选择器已选择城市，为其加载详细信息
+        // 如果城市选择器已选择城市，为其加载基本天气数据和详细信息
         if (this.selectedCity) {
+            // 获取城市选择器卡片
+            const selectorCard = document.querySelector('[data-city="CITY_SELECTOR"]');
+            if (selectorCard && !this.citiesData[this.selectedCity.name]) {
+                // 如果还没有该城市的数据，先加载基本天气数据
+                await this.loadSelectedCityWeather(this.selectedCity, selectorCard);
+            } else if (selectorCard && this.citiesData[this.selectedCity.name]) {
+                // 如果已有数据，更新显示即可
+                this.updateCitySelectorWeatherInfo(selectorCard, this.citiesData[this.selectedCity.name]);
+            }
+            // 加载详细信息（天气指数、空气质量、天文信息等）
             await this.loadCitySelectorDetailedInfo();
         }
     }
