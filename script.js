@@ -13,7 +13,8 @@ const HOLIDAY_CONFIG = {
         valentine: { month: 2, day: 14, name: '情人节' },
         laborDay: { month: 5, day: 1, name: '劳动节' },
         nationalDay: { month: 10, day: 1, name: '国庆节' },
-        childrenDay: { month: 6, day: 1, name: '儿童节' }
+        childrenDay: { month: 6, day: 1, name: '儿童节' },
+        christmas: { month: 12, day: 25, name: '圣诞节' }
     },
     
     // 农历节日
@@ -848,7 +849,8 @@ function calculateFestivalStats(now) {
         national: calculateNationalDay(now),
         lantern: calculateLanternFestival(now),
         midAutumn: calculateMidAutumn(now),
-        dragonBoat: calculateDragonBoat(now)
+        dragonBoat: calculateDragonBoat(now),
+        christmas: calculateChristmas(now)
     };
 }
 
@@ -1060,6 +1062,26 @@ function calculateDragonBoat(now) {
     };
 }
 
+// 计算圣诞节数据
+function calculateChristmas(now) {
+    const christmasConfig = ConfigUtil.getSolarHoliday('christmas');
+    const nextChristmas = getNextFestival(christmasConfig.month, christmasConfig.day);
+    const secondsToChristmas = TimeUtil.getSecondsTo(nextChristmas);
+    const [christmasDays, christmasHours, christmasMinutes, christmasSeconds] = TimeUtil.secondsToDHMS(secondsToChristmas);
+    const christmasProgress = ProgressUtil.calculateFestival(nextChristmas);
+    
+    return {
+        date: nextChristmas,
+        seconds: secondsToChristmas,
+        days: christmasDays,
+        hours: christmasHours,
+        minutes: christmasMinutes,
+        seconds2: christmasSeconds,
+        progress: christmasProgress,
+        detail: `还剩 ${christmasDays} 天 ${christmasHours} 小时 ${christmasMinutes} 分钟`
+    };
+}
+
 // 计算工作相关数据
 function calculateWorkStats(now) {
     return {
@@ -1202,7 +1224,22 @@ function calculateSalaryData(now) {
     
     const secondsToSalary = TimeUtil.getSecondsTo(nextSalaryDate);
     const [salaryDays, salaryHours, salaryMinutes, salarySeconds] = TimeUtil.secondsToDHMS(secondsToSalary);
-    const salaryProgress = ProgressUtil.calculateFestival(nextSalaryDate);
+
+    // 按发薪周期（上一次发薪日 -> 下一次发薪日）计算进度
+    const prevSalaryDate = new Date(nextSalaryDate);
+    // 如果目标是本月（today < salaryDay），则上一次为上月；否则为本月
+    if (today < salaryDay) {
+        prevSalaryDate.setMonth(prevSalaryDate.getMonth() - 1);
+    }
+    prevSalaryDate.setDate(salaryDay);
+    prevSalaryDate.setHours(0, 0, 0, 0);
+
+    let salaryProgress = 0;
+    const totalCycleMs = nextSalaryDate - prevSalaryDate;
+    const elapsedMs = now - prevSalaryDate;
+    if (totalCycleMs > 0) {
+        salaryProgress = Math.max(0, Math.min(100, (elapsedMs / totalCycleMs) * 100));
+    }
     
     return {
         status: 'salary_countdown',
@@ -1420,6 +1457,15 @@ function createFestivalCards(festivalData) {
             type: 'countdown',
             secondsToTarget: festivalData.dragonBoat.seconds,
             targetDate: festivalData.dragonBoat.date
+        },
+        {
+            title: '圣诞节倒计时',
+            detail: festivalData.christmas.detail,
+            percent: festivalData.christmas.progress,
+            className: 'christmas',
+            type: 'countdown',
+            secondsToTarget: festivalData.christmas.seconds,
+            targetDate: festivalData.christmas.date
         }
     ];
 }
@@ -1567,6 +1613,9 @@ function renderAllCards(sortedCards, container) {
                 case 'dragon-boat-festival':
                     targetTime = `端午节: ${month}月${day}日`;
                     break;
+                case 'christmas':
+                    targetTime = `圣诞节: ${month}月${day}日`;
+                    break;
                 case 'children-day':
                     targetTime = `儿童节: ${month}月${day}日`;
                     break;
@@ -1659,6 +1708,9 @@ function updateSingleCard(card, now) {
                         break;
                     case 'dragon-boat-festival':
             updateDragonBoatCard(card, now);
+                        break;
+                    case 'christmas':
+            updateChristmasCard(card, now);
                         break;
                 }
 }
@@ -1813,6 +1865,13 @@ function updateMidAutumnCard(card, now) {
 // 更新端午节卡片
 function updateDragonBoatCard(card, now) {
     const data = calculateDragonBoat(now);
+    updateCardElements(card, data.detail, data.progress);
+    updateProgressEffects(card, data.progress);
+}
+
+// 更新圣诞节卡片
+function updateChristmasCard(card, now) {
+    const data = calculateChristmas(now);
     updateCardElements(card, data.detail, data.progress);
     updateProgressEffects(card, data.progress);
 }
