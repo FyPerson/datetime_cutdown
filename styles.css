@@ -479,6 +479,343 @@ h1 {
     background-color: rgba(0, 178, 111, 0.1);
 }
 
+/* 圣诞节倒计时卡片样式 - 方案九组合特效 */
+.stat-item.christmas {
+    --stat-color: #FFD700;  /* 金色 */
+    --christmas-red: #DC143C;
+    --christmas-green: #228B22;
+    --christmas-gold: #FFD700;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, 
+        rgba(220, 20, 60, 0.15) 0%, 
+        rgba(34, 139, 34, 0.15) 50%,
+        rgba(220, 20, 60, 0.15) 100%
+    );
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 红绿渐变背景 */
+.stat-item.christmas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(220, 20, 60, 0.2) 0%, 
+        rgba(34, 139, 34, 0.2) 50%,
+        rgba(220, 20, 60, 0.2) 100%
+    );
+    z-index: 0;
+    opacity: 0.6;
+    animation: christmas-gradient 3s ease-in-out infinite alternate;
+}
+
+/* 雪花飘落动画背景层 */
+.stat-item.christmas::after {
+    content: '❄ ❄ ❄ ❄ ❄';
+    position: absolute;
+    top: -50px;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    font-size: 1.2em;
+    color: rgba(255, 255, 255, 0.6);
+    z-index: 1;
+    pointer-events: none;
+    animation: snow-fall 8s linear infinite;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+/* 雪花飘落动画 */
+@keyframes snow-fall {
+    0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateY(100px) translateX(20px);
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(200px) translateX(-20px);
+        opacity: 0;
+    }
+}
+
+/* 渐变背景动画 */
+@keyframes christmas-gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* 3D翻转悬停效果 */
+.stat-item.christmas:hover {
+    transform: translateY(-8px) rotateY(5deg) rotateX(-2deg) scale(1.02);
+    box-shadow: 0 15px 40px rgba(220, 20, 60, 0.3),
+                0 0 30px rgba(255, 215, 0, 0.4),
+                0 0 60px rgba(34, 139, 34, 0.2);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+/* 圣诞老人骑麋鹿经过特效 - 方案五（SVG版本） */
+.stat-item.christmas .santa-sleigh {
+    position: absolute;
+    top: 15%;
+    left: calc(100% + 120px);
+    width: 120px;
+    height: 80px;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 1;
+    will-change: transform;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)) 
+           drop-shadow(0 0 25px rgba(220, 20, 60, 0.4));
+    animation: santa-fly-horizontal 3s linear infinite;
+}
+
+/* SVG图标样式 */
+.stat-item.christmas .santa-sleigh svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* 圣诞老人横向飞行动画 - 从右侧到左侧，循环播放 */
+@keyframes santa-fly-horizontal {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-100% - 240px));
+    }
+}
+
+/* 麋鹿翅膀扇动动画 - SVG动画 */
+.stat-item.christmas .santa-sleigh .reindeer-wing {
+    animation: wing-flap 0.4s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.stat-item.christmas .santa-sleigh .reindeer-wing-left {
+    animation-delay: 0s;
+}
+
+.stat-item.christmas .santa-sleigh .reindeer-wing-right {
+    animation-delay: 0.2s;
+}
+
+@keyframes wing-flap {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-8px) rotate(-10deg);
+    }
+}
+
+/* 雪橇轨迹效果 - 循环播放 */
+.stat-item.christmas .santa-sleigh::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 120px;
+    width: 200px;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 20%,
+        rgba(255, 215, 0, 0.5) 50%,
+        rgba(255, 255, 255, 0.3) 80%,
+        transparent 100%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.7;
+    animation: trail-effect-horizontal 3s linear infinite;
+}
+
+@keyframes trail-effect-horizontal {
+    0% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 0.9;
+    }
+    100% {
+        opacity: 0.7;
+    }
+}
+
+/* 礼物袋摆动动画 */
+.stat-item.christmas .santa-sleigh .gift-bag {
+    animation: gift-swing 1s ease-in-out infinite;
+    transform-origin: top center;
+}
+
+@keyframes gift-swing {
+    0%, 100% {
+        transform: rotate(-5deg);
+    }
+    50% {
+        transform: rotate(5deg);
+    }
+}
+
+/* 接近圣诞节时增强发光效果 */
+.stat-item.christmas.near-christmas {
+    animation: christmas-glow 2s ease-in-out infinite alternate;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+                0 0 40px rgba(220, 20, 60, 0.3),
+                0 0 60px rgba(34, 139, 34, 0.2);
+}
+
+.stat-item.christmas.very-near-christmas {
+    animation: christmas-glow-intense 1.5s ease-in-out infinite alternate;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.7),
+                0 0 60px rgba(220, 20, 60, 0.5),
+                0 0 90px rgba(34, 139, 34, 0.3);
+}
+
+/* 发光动画 */
+@keyframes christmas-glow {
+    0% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+                    0 0 40px rgba(220, 20, 60, 0.3),
+                    0 0 60px rgba(34, 139, 34, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.7),
+                    0 0 60px rgba(220, 20, 60, 0.5),
+                    0 0 90px rgba(34, 139, 34, 0.3);
+    }
+}
+
+@keyframes christmas-glow-intense {
+    0% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.7),
+                    0 0 60px rgba(220, 20, 60, 0.5),
+                    0 0 90px rgba(34, 139, 34, 0.3);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.9),
+                    0 0 80px rgba(220, 20, 60, 0.7),
+                    0 0 120px rgba(34, 139, 34, 0.5);
+        transform: scale(1.01);
+    }
+}
+
+/* 圣诞节卡片内容层级 */
+.stat-item.christmas > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* 金色进度条 */
+.stat-item.christmas .progress-bar {
+    background: linear-gradient(90deg,
+        var(--christmas-red) 0%,
+        var(--christmas-gold) 30%,
+        var(--christmas-green) 60%,
+        var(--christmas-gold) 80%,
+        var(--christmas-red) 100%
+    );
+    background-size: 200% 100%;
+    animation: progress-shimmer 3s linear infinite;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.6),
+                inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* 进度条流光效果 */
+@keyframes progress-shimmer {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+/* 四角装饰图标 */
+.stat-item.christmas .christmas-decoration {
+    position: absolute;
+    font-size: 1.2em;
+    color: var(--christmas-gold);
+    z-index: 3;
+    pointer-events: none;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8),
+                 0 0 20px rgba(255, 215, 0, 0.5);
+    animation: decoration-sparkle 2s ease-in-out infinite;
+}
+
+.stat-item.christmas .christmas-decoration.top-left {
+    top: 8px;
+    left: 8px;
+    animation-delay: 0s;
+}
+
+.stat-item.christmas .christmas-decoration.top-right {
+    top: 8px;
+    right: 8px;
+    animation-delay: 0.5s;
+}
+
+.stat-item.christmas .christmas-decoration.bottom-left {
+    bottom: 8px;
+    left: 8px;
+    animation-delay: 1s;
+}
+
+.stat-item.christmas .christmas-decoration.bottom-right {
+    bottom: 8px;
+    right: 8px;
+    animation-delay: 1.5s;
+}
+
+/* 装饰图标闪烁动画 */
+@keyframes decoration-sparkle {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+}
+
+/* 圣诞节卡片标题特殊样式 */
+.stat-item.christmas .stat-header {
+    color: var(--christmas-gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6),
+                 0 0 20px rgba(255, 215, 0, 0.3);
+    font-weight: bold;
+}
+
+/* 圣诞节卡片详情文字 */
+.stat-item.christmas .stat-detail {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* 圣诞节卡片进度文字 */
+.stat-item.christmas .progress-text {
+    color: var(--christmas-gold);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
 /* 公历和农历日期显示的样式 */
 #solar-date {
     font-size: 1.2rem;

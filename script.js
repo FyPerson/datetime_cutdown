@@ -60,6 +60,36 @@ const HOLIDAY_CONFIG = {
                 '2025-10-02', '2025-10-03', '2025-10-04', '2025-10-05',
                 '2025-10-06', '2025-10-07', '2025-10-08' // 国庆节
             ]
+        },
+        '2026': {
+            // 调班工作日（原休息日调为工作日）
+            adjustedWorkdays: [
+                '2026-01-04', // 1月4日（周日）上班
+                '2026-02-14', // 2月14日（周六）上班
+                '2026-02-28', // 2月28日（周六）上班
+                '2026-05-09', // 5月9日（周六）上班
+                '2026-09-20', // 9月20日（周日）上班
+                '2026-10-10'  // 10月10日（周六）上班
+            ],
+            // 调班休息日（原工作日调为休息日）
+            adjustedRestdays: [
+                // 元旦：1月1日（周四）至3日（周六）放假，共3天
+                '2026-01-01', '2026-01-02', '2026-01-03',
+                // 春节：2月15日（周日）至23日（周一）放假，共9天
+                '2026-02-15', '2026-02-16', '2026-02-17', '2026-02-18', '2026-02-19',
+                '2026-02-20', '2026-02-21', '2026-02-22', '2026-02-23',
+                // 清明节：4月4日（周六）至6日（周一）放假，共3天
+                '2026-04-04', '2026-04-05', '2026-04-06',
+                // 劳动节：5月1日（周五）至5日（周二）放假，共5天
+                '2026-05-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05',
+                // 端午节：6月19日（周五）至21日（周日）放假，共3天
+                '2026-06-19', '2026-06-20', '2026-06-21',
+                // 中秋节：9月25日（周五）至27日（周日）放假，共3天
+                '2026-09-25', '2026-09-26', '2026-09-27',
+                // 国庆节：10月1日（周四）至7日（周三）放假，共7天
+                '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04',
+                '2026-10-05', '2026-10-06', '2026-10-07'
+            ]
         }
     }
 };
@@ -727,6 +757,73 @@ function createStatElement(title, detail, percent, className, targetTime = null)
         targetTimeHtml = `<div class="target-time">${targetTime}</div>`;
     }
     
+    // 圣诞节卡片添加四角装饰图标和圣诞老人骑麋鹿特效（SVG版本）
+    let decorationHtml = '';
+    if (className === 'christmas') {
+        decorationHtml = `
+            <div class="christmas-decoration top-left">❄</div>
+            <div class="christmas-decoration top-right">⭐</div>
+            <div class="christmas-decoration bottom-left">⭐</div>
+            <div class="christmas-decoration bottom-right">❄</div>
+            <div class="santa-sleigh">
+                <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 麋鹿身体 -->
+                    <ellipse cx="30" cy="50" rx="15" ry="12" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 麋鹿头部 -->
+                    <ellipse cx="20" cy="40" rx="10" ry="12" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 麋鹿角 -->
+                    <path d="M 15 30 Q 10 20 8 15 Q 10 18 12 20" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 15 30 Q 10 20 6 12 Q 8 15 10 18" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 25 30 Q 30 20 32 15 Q 30 18 28 20" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 25 30 Q 30 20 34 12 Q 32 15 30 18" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- 麋鹿眼睛 -->
+                    <circle cx="18" cy="38" r="1.5" fill="#000"/>
+                    <circle cx="22" cy="38" r="1.5" fill="#000"/>
+                    <!-- 麋鹿鼻子 -->
+                    <ellipse cx="20" cy="42" rx="2" ry="1.5" fill="#FF69B4"/>
+                    <!-- 翅膀左 -->
+                    <g class="reindeer-wing reindeer-wing-left">
+                        <ellipse cx="25" cy="45" rx="8" ry="15" fill="rgba(139, 69, 19, 0.4)" stroke="#8B4513" stroke-width="1" opacity="0.7"/>
+                    </g>
+                    <!-- 翅膀右 -->
+                    <g class="reindeer-wing reindeer-wing-right">
+                        <ellipse cx="35" cy="45" rx="8" ry="15" fill="rgba(139, 69, 19, 0.4)" stroke="#8B4513" stroke-width="1" opacity="0.7"/>
+                    </g>
+                    <!-- 雪橇 -->
+                    <rect x="40" y="55" width="50" height="8" rx="4" fill="#654321" stroke="#3D2817" stroke-width="1"/>
+                    <rect x="45" y="50" width="40" height="5" rx="2" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 圣诞老人 -->
+                    <circle cx="70" cy="35" r="12" fill="#FFE4B5" stroke="#DEB887" stroke-width="1"/>
+                    <!-- 圣诞老人帽子 -->
+                    <path d="M 60 30 Q 70 20 80 30 L 75 30 L 70 25 L 65 30 Z" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    <circle cx="70" cy="25" r="3" fill="#FFFFFF"/>
+                    <!-- 圣诞老人白眉毛 -->
+                    <path d="M 64 30 Q 67 28 70 30" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M 70 30 Q 73 28 76 30" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <!-- 圣诞老人眼睛 -->
+                    <circle cx="67" cy="33" r="1.5" fill="#000"/>
+                    <circle cx="73" cy="33" r="1.5" fill="#000"/>
+                    <!-- 圣诞老人白胡子 -->
+                    <path d="M 65 38 Q 70 42 75 38" stroke="#FFFFFF" stroke-width="3" fill="#FFFFFF" stroke-linecap="round"/>
+                    <path d="M 65 40 Q 70 44 75 40" stroke="#FFFFFF" stroke-width="3" fill="#FFFFFF" stroke-linecap="round"/>
+                    <path d="M 63 42 Q 70 46 77 42" stroke="#FFFFFF" stroke-width="2.5" fill="#FFFFFF" stroke-linecap="round"/>
+                    <!-- 圣诞老人身体 -->
+                    <ellipse cx="70" cy="48" rx="10" ry="12" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    <!-- 礼物袋 -->
+                    <g class="gift-bag">
+                        <rect x="85" y="45" width="12" height="15" rx="2" fill="#228B22" stroke="#006400" stroke-width="1"/>
+                        <rect x="87" y="47" width="8" height="3" fill="#FFD700"/>
+                        <rect x="87" y="52" width="8" height="3" fill="#FFD700"/>
+                        <path d="M 91 45 L 91 60" stroke="#FFD700" stroke-width="1"/>
+                    </g>
+                    <!-- 星星装饰 -->
+                    <path d="M 50 25 L 52 30 L 57 30 L 53 33 L 55 38 L 50 35 L 45 38 L 47 33 L 43 30 L 48 30 Z" fill="#FFD700" opacity="0.8"/>
+                    <path d="M 100 20 L 101 23 L 104 23 L 101.5 25 L 102.5 28 L 100 26 L 97.5 28 L 98.5 25 L 96 23 L 99 23 Z" fill="#FFD700" opacity="0.6"/>
+                </svg>
+            </div>
+        `;
+    }
+    
     statDiv.innerHTML = `
         <div class="stat-header">${title}</div>
         <div class="stat-detail">${detail}</div>
@@ -735,6 +832,7 @@ function createStatElement(title, detail, percent, className, targetTime = null)
         </div>
         <div class="progress-text">(${percent.toFixed(1)}%)</div>
         ${targetTimeHtml}
+        ${decorationHtml}
     `;
 
     return statDiv;
@@ -1874,6 +1972,149 @@ function updateChristmasCard(card, now) {
     const data = calculateChristmas(now);
     updateCardElements(card, data.detail, data.progress);
     updateProgressEffects(card, data.progress);
+    
+    // 根据剩余天数添加动态特效类名
+    const daysRemaining = data.days;
+    
+    // 移除之前的特效类名
+    card.classList.remove('near-christmas', 'very-near-christmas');
+    
+    // 根据剩余天数添加特效
+    if (daysRemaining <= 3) {
+        // 非常接近圣诞节（3天以内）- 强烈特效
+        card.classList.add('very-near-christmas');
+    } else if (daysRemaining <= 7) {
+        // 接近圣诞节（7天以内）- 中等特效
+        card.classList.add('near-christmas');
+    }
+    
+    // 确保装饰图标和圣诞老人特效存在（如果卡片刚创建时没有添加）- SVG版本
+    if (!card.querySelector('.christmas-decoration')) {
+        const decorationHtml = `
+            <div class="christmas-decoration top-left">❄</div>
+            <div class="christmas-decoration top-right">⭐</div>
+            <div class="christmas-decoration bottom-left">⭐</div>
+            <div class="christmas-decoration bottom-right">❄</div>
+            <div class="santa-sleigh">
+                <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 麋鹿身体 -->
+                    <ellipse cx="30" cy="50" rx="15" ry="12" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 麋鹿头部 -->
+                    <ellipse cx="20" cy="40" rx="10" ry="12" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 麋鹿角 -->
+                    <path d="M 15 30 Q 10 20 8 15 Q 10 18 12 20" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 15 30 Q 10 20 6 12 Q 8 15 10 18" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 25 30 Q 30 20 32 15 Q 30 18 28 20" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 25 30 Q 30 20 34 12 Q 32 15 30 18" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- 麋鹿眼睛 -->
+                    <circle cx="18" cy="38" r="1.5" fill="#000"/>
+                    <circle cx="22" cy="38" r="1.5" fill="#000"/>
+                    <!-- 麋鹿鼻子 -->
+                    <ellipse cx="20" cy="42" rx="2" ry="1.5" fill="#FF69B4"/>
+                    <!-- 翅膀左 -->
+                    <g class="reindeer-wing reindeer-wing-left">
+                        <ellipse cx="25" cy="45" rx="8" ry="15" fill="rgba(139, 69, 19, 0.4)" stroke="#8B4513" stroke-width="1" opacity="0.7"/>
+                    </g>
+                    <!-- 翅膀右 -->
+                    <g class="reindeer-wing reindeer-wing-right">
+                        <ellipse cx="35" cy="45" rx="8" ry="15" fill="rgba(139, 69, 19, 0.4)" stroke="#8B4513" stroke-width="1" opacity="0.7"/>
+                    </g>
+                    <!-- 雪橇 -->
+                    <rect x="40" y="55" width="50" height="8" rx="4" fill="#654321" stroke="#3D2817" stroke-width="1"/>
+                    <rect x="45" y="50" width="40" height="5" rx="2" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 圣诞老人 -->
+                    <circle cx="70" cy="35" r="12" fill="#FFE4B5" stroke="#DEB887" stroke-width="1"/>
+                    <!-- 圣诞老人帽子 -->
+                    <path d="M 60 30 Q 70 20 80 30 L 75 30 L 70 25 L 65 30 Z" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    <circle cx="70" cy="25" r="3" fill="#FFFFFF"/>
+                    <!-- 圣诞老人白眉毛 -->
+                    <path d="M 64 30 Q 67 28 70 30" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M 70 30 Q 73 28 76 30" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <!-- 圣诞老人眼睛 -->
+                    <circle cx="67" cy="33" r="1.5" fill="#000"/>
+                    <circle cx="73" cy="33" r="1.5" fill="#000"/>
+                    <!-- 圣诞老人白胡子 -->
+                    <path d="M 65 38 Q 70 42 75 38" stroke="#FFFFFF" stroke-width="3" fill="#FFFFFF" stroke-linecap="round"/>
+                    <path d="M 65 40 Q 70 44 75 40" stroke="#FFFFFF" stroke-width="3" fill="#FFFFFF" stroke-linecap="round"/>
+                    <path d="M 63 42 Q 70 46 77 42" stroke="#FFFFFF" stroke-width="2.5" fill="#FFFFFF" stroke-linecap="round"/>
+                    <!-- 圣诞老人身体 -->
+                    <ellipse cx="70" cy="48" rx="10" ry="12" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    <!-- 礼物袋 -->
+                    <g class="gift-bag">
+                        <rect x="85" y="45" width="12" height="15" rx="2" fill="#228B22" stroke="#006400" stroke-width="1"/>
+                        <rect x="87" y="47" width="8" height="3" fill="#FFD700"/>
+                        <rect x="87" y="52" width="8" height="3" fill="#FFD700"/>
+                        <path d="M 91 45 L 91 60" stroke="#FFD700" stroke-width="1"/>
+                    </g>
+                    <!-- 星星装饰 -->
+                    <path d="M 50 25 L 52 30 L 57 30 L 53 33 L 55 38 L 50 35 L 45 38 L 47 33 L 43 30 L 48 30 Z" fill="#FFD700" opacity="0.8"/>
+                    <path d="M 100 20 L 101 23 L 104 23 L 101.5 25 L 102.5 28 L 100 26 L 97.5 28 L 98.5 25 L 96 23 L 99 23 Z" fill="#FFD700" opacity="0.6"/>
+                </svg>
+            </div>
+        `;
+        card.insertAdjacentHTML('beforeend', decorationHtml);
+    } else if (!card.querySelector('.santa-sleigh')) {
+        // 如果装饰图标存在但圣诞老人不存在，只添加圣诞老人（SVG版本）
+        const santaHtml = `
+            <div class="santa-sleigh">
+                <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 麋鹿身体 -->
+                    <ellipse cx="30" cy="50" rx="15" ry="12" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 麋鹿头部 -->
+                    <ellipse cx="20" cy="40" rx="10" ry="12" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 麋鹿角 -->
+                    <path d="M 15 30 Q 10 20 8 15 Q 10 18 12 20" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 15 30 Q 10 20 6 12 Q 8 15 10 18" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 25 30 Q 30 20 32 15 Q 30 18 28 20" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 25 30 Q 30 20 34 12 Q 32 15 30 18" stroke="#654321" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- 麋鹿眼睛 -->
+                    <circle cx="18" cy="38" r="1.5" fill="#000"/>
+                    <circle cx="22" cy="38" r="1.5" fill="#000"/>
+                    <!-- 麋鹿鼻子 -->
+                    <ellipse cx="20" cy="42" rx="2" ry="1.5" fill="#FF69B4"/>
+                    <!-- 翅膀左 -->
+                    <g class="reindeer-wing reindeer-wing-left">
+                        <ellipse cx="25" cy="45" rx="8" ry="15" fill="rgba(139, 69, 19, 0.4)" stroke="#8B4513" stroke-width="1" opacity="0.7"/>
+                    </g>
+                    <!-- 翅膀右 -->
+                    <g class="reindeer-wing reindeer-wing-right">
+                        <ellipse cx="35" cy="45" rx="8" ry="15" fill="rgba(139, 69, 19, 0.4)" stroke="#8B4513" stroke-width="1" opacity="0.7"/>
+                    </g>
+                    <!-- 雪橇 -->
+                    <rect x="40" y="55" width="50" height="8" rx="4" fill="#654321" stroke="#3D2817" stroke-width="1"/>
+                    <rect x="45" y="50" width="40" height="5" rx="2" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                    <!-- 圣诞老人 -->
+                    <circle cx="70" cy="35" r="12" fill="#FFE4B5" stroke="#DEB887" stroke-width="1"/>
+                    <!-- 圣诞老人帽子 -->
+                    <path d="M 60 30 Q 70 20 80 30 L 75 30 L 70 25 L 65 30 Z" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    <circle cx="70" cy="25" r="3" fill="#FFFFFF"/>
+                    <!-- 圣诞老人白眉毛 -->
+                    <path d="M 64 30 Q 67 28 70 30" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M 70 30 Q 73 28 76 30" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <!-- 圣诞老人眼睛 -->
+                    <circle cx="67" cy="33" r="1.5" fill="#000"/>
+                    <circle cx="73" cy="33" r="1.5" fill="#000"/>
+                    <!-- 圣诞老人白胡子 -->
+                    <path d="M 65 38 Q 70 42 75 38" stroke="#FFFFFF" stroke-width="3" fill="#FFFFFF" stroke-linecap="round"/>
+                    <path d="M 65 40 Q 70 44 75 40" stroke="#FFFFFF" stroke-width="3" fill="#FFFFFF" stroke-linecap="round"/>
+                    <path d="M 63 42 Q 70 46 77 42" stroke="#FFFFFF" stroke-width="2.5" fill="#FFFFFF" stroke-linecap="round"/>
+                    <!-- 圣诞老人身体 -->
+                    <ellipse cx="70" cy="48" rx="10" ry="12" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    <!-- 礼物袋 -->
+                    <g class="gift-bag">
+                        <rect x="85" y="45" width="12" height="15" rx="2" fill="#228B22" stroke="#006400" stroke-width="1"/>
+                        <rect x="87" y="47" width="8" height="3" fill="#FFD700"/>
+                        <rect x="87" y="52" width="8" height="3" fill="#FFD700"/>
+                        <path d="M 91 45 L 91 60" stroke="#FFD700" stroke-width="1"/>
+                    </g>
+                    <!-- 星星装饰 -->
+                    <path d="M 50 25 L 52 30 L 57 30 L 53 33 L 55 38 L 50 35 L 45 38 L 47 33 L 43 30 L 48 30 Z" fill="#FFD700" opacity="0.8"/>
+                    <path d="M 100 20 L 101 23 L 104 23 L 101.5 25 L 102.5 28 L 100 26 L 97.5 28 L 98.5 25 L 96 23 L 99 23 Z" fill="#FFD700" opacity="0.6"/>
+                </svg>
+            </div>
+        `;
+        card.insertAdjacentHTML('beforeend', santaHtml);
+    }
 }
 
 
